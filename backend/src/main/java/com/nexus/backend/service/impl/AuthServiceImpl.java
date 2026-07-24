@@ -7,7 +7,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import com.nexus.backend.config.JwtProperties;
 import com.nexus.backend.dto.request.LoginRequest;
 import com.nexus.backend.dto.request.RegisterRequest;
