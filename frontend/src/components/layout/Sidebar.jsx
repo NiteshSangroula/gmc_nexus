@@ -63,7 +63,7 @@ const menuItems = [
 
 const Sidebar = () => {
   return (
-    <aside className="flex h-screen w-72 flex-col border-r border-slate-800 bg-[#0F172A] text-white">
+    <aside className="flex h-screen w-72 flex-col border-r border-slate-800 bg-zinc-900 text-white">
 
       {/* Logo */}
 
