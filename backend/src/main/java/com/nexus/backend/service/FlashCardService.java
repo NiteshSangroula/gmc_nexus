@@ -14,7 +14,7 @@ import com.nexus.backend.entity.FlashCard;
  */
 public interface FlashCardService {
 
-    public List<FlashCardResponse> generate(Long userId, String pdfText, String deckTitle);
+    public List<FlashCardResponse> generate(Long userId, String pdfText, String deckTitle, int count);
 
     public List<FlashCard> getByUser(Long userId);
 

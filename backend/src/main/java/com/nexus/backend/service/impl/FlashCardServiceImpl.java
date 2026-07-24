@@ -126,7 +126,7 @@ public class FlashCardServiceImpl implements FlashCardService {
     }
 
     @Override
-    public List<FlashCardResponse> generate(Long userId, String pdfText, String deckTitle) {
+    public List<FlashCardResponse> generate(Long userId, String pdfText, String deckTitle, int count) {
         User user = userService.getUserById(userId);
         userService.resetCreditsIfNewDay(user);
         userService.checkCredits(user);
@@ -135,7 +135,7 @@ public class FlashCardServiceImpl implements FlashCardService {
             throw new InvalidFileException("No extractable text found in this PDF.");
         }
 
-        List<QAPairs> pairs = aiService.generateFlashCards(pdfText);
+        List<QAPairs> pairs = aiService.generateFlashCards(pdfText, count);
 
         if (pairs == null || pairs.isEmpty()) {
             throw new AiGenerationException("AI did not return any flashcards. Please try again.");

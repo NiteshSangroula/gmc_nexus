@@ -32,12 +32,14 @@ public class AiServiceImpl implements AiService {
     }
 
     @Override
-    public List<QAPairs> generateFlashCards(String text) {
+    public List<QAPairs> generateFlashCards(String text, int count) {
         String cappedText = text.substring(0, Math.min(text.length(), 8000));
 
-        String prompt = "Genrate a set flashcard with the following details "
-                + "Create a concise clear question and answers covering the key concept of the following text."
-                + "Input Text : \n\n" + cappedText;
+        String prompt = "Generate a set of exactly " + count + " educational flashcards from the following text. "
+                    + "Create clear, concise questions and answers covering the key concepts. "
+                    + "Return a JSON array of objects, each containing 'question' and 'answer' fields. "
+                    + "Input Text:\n\n" + cappedText;
+        
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
                         Map.of("parts", List.of(

@@ -45,15 +45,17 @@ public class FlashCardController {
     @PostMapping("/generate")
     public ResponseEntity<ApiResponse<List<FlashCardResponse>>> generate(
             @RequestParam Long pdfId,
+            @RequestParam(required = false, defaultValue = "10") int count,
             Authentication auth) {
         UserResponse userResponse = userService.getCurrentUser(auth);
         PdfDocument pdfDoc = pdfService.findById(pdfId);
         String pdfText = pdfDoc.getExtractedText();
         String deckTitle = pdfDoc.getFilename();
 
-        List<FlashCardResponse> flashcards = flashCardService.generate(userResponse.id(), pdfText, deckTitle);
+        List<FlashCardResponse> flashcards = flashCardService.generate(userResponse.id(), pdfText, deckTitle,count);
         ApiResponse<List<FlashCardResponse>> apiResponse = ApiResponse.success(flashcards,
-                "flashcards generated succesfully");
+                "flashcards generated succesfully"
+        );
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
 
     }
