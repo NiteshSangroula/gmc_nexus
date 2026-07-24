@@ -2,10 +2,10 @@ import Sidebar from "../components/layout/Sidebar";
 
 const MainLayout = ({ children }) => {
   return (
-    <div className="flex bg-[#020817]">
+    <div className="min-h-screen bg-zinc-950 text-white lg:flex">
       <Sidebar />
 
-      <main className="flex-1">
+      <main className="flex-1 overflow-x-hidden">
         {children}
       </main>
     </div>
