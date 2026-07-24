@@ -1,4 +1,4 @@
-import Sidebar from "./Sidebar";
+import Sidebar from "../components/layout/Sidebar";
 
 const MainLayout = ({ children }) => {
   return (
