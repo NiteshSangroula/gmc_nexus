@@ -16,7 +16,6 @@ import com.nexus.backend.exception.*;
 import com.nexus.backend.dto.request.LoginRequest;
 import com.nexus.backend.dto.request.RegisterRequest;
 import com.nexus.backend.dto.response.AuthResponse;
-import com.nexus.backend.entity.Role;
 import com.nexus.backend.repository.UserRepository;
 import com.nexus.backend.security.JwtUtil;
 import com.nexus.backend.entity.User;
