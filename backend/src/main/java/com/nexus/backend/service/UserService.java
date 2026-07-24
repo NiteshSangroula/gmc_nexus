@@ -22,4 +22,6 @@ public interface UserService {
 
     public UserResponse upgradeToPremium(Authentication auth);
 
+    public com.nexus.backend.dto.response.UpdateProfileResponse updateProfile(Authentication auth, com.nexus.backend.dto.request.UpdateProfileRequest request);
+
 }
