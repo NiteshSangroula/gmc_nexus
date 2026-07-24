@@ -16,4 +16,8 @@ public interface UserService {
 
     public void resetCreditsIfNewDay(User user);
 
+    public void checkCredits(User user);
+
+    public User getUserById(Long userId);
+
 }

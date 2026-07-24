@@ -8,12 +8,14 @@ import com.nexus.backend.entity.User;
 
 import java.util.List;
 
-
 @Repository
 public interface FlashCardRepository extends JpaRepository<FlashCard, Long> {
     List<FlashCard> findByUserAndDeckId(User user, String deckId);
 
+    List<FlashCard> findByUserId(Long userId);
+
     void deleteByUserAndDeckId(User user, String deckId);
+
     @Query("SELECT DISTINCT f.deckId, f.deckTitle, f.createdAt FROM FlashCard f WHERE f.user = :user")
     List<Object[]> findDistinctDeckByUser(User user);
 
