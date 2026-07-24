@@ -3,19 +3,13 @@ import MainLayout from "../layouts/MainLayout";
 const Dashboard = () => {
   return (
     <MainLayout>
-<<<<<<< HEAD
-      <h1 className="text-4xl font-bold text-red-600">
-        Dashboard Working
-      </h1>
-=======
-      <h1 className="text-4xl font-bold">
+      <h1 className="text-4xl font-bold text-white">
         Dashboard
       </h1>
 
-      <p className="mt-4 text-gray-600">
+      <p className="mt-4 text-gray-400">
         Welcome to FlashMind.
       </p>
->>>>>>> f4b8662 (freeing up the stash to pull rohan's code and work on some pages routed in the slidebar)
     </MainLayout>
   );
 };
