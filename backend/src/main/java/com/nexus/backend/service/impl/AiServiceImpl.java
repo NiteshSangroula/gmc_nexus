@@ -1,10 +1,9 @@
 package com.nexus.backend.service.impl;
 
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nexus.backend.dto.response.FlashcardResponse;
+import com.nexus.backend.dto.response.QAPairs;
 import com.nexus.backend.service.AiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +19,9 @@ import java.util.Map;
 public class AiServiceImpl implements AiService {
     private final RestClient restClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Autowired
-    public  AiServiceImpl(
+    public AiServiceImpl(
             @Value("${gemini.api.url}") String apiUrl,
             @Value("${gemini.api.key}") String apiKey) {
         this.restClient = RestClient.builder()
@@ -29,19 +29,19 @@ public class AiServiceImpl implements AiService {
                 .defaultHeader("Content-Type", "application/json")
                 .build();
 
-
     }
+
     @Override
-    public List<FlashcardResponse> generateFlashCards(String text){
+    public List<QAPairs> generateFlashCards(String text) {
         String cappedText = text.substring(0, Math.min(text.length(), 8000));
 
-        String prompt =  "Genrate a set flashcard with the following details " + "Create a concise clear question and answers covering the key concept of the following text." + "Input Text : \n\n" + cappedText;
+        String prompt = "Genrate a set flashcard with the following details "
+                + "Create a concise clear question and answers covering the key concept of the following text."
+                + "Input Text : \n\n" + cappedText;
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
                         Map.of("parts", List.of(
-                                Map.of("text", prompt)
-                        ))
-                ),
+                                Map.of("text", prompt)))),
                 "generationConfig", Map.of(
                         "responseMimeType", "application/json",
                         "responseSchema", Map.of(
@@ -50,13 +50,8 @@ public class AiServiceImpl implements AiService {
                                         "type", "OBJECT",
                                         "properties", Map.of(
                                                 "question", Map.of("type", "STRING"),
-                                                "answer", Map.of("type", "STRING")
-                                        ),
-                                        "required", List.of("question", "answer")
-                                )
-                        )
-                )
-        );
+                                                "answer", Map.of("type", "STRING")),
+                                        "required", List.of("question", "answer")))));
         try {
             String respondBody = restClient.post()
                     .body(requestBody)
@@ -71,32 +66,28 @@ public class AiServiceImpl implements AiService {
                     .path("text")
                     .asText();
 
-            return objectMapper.readValue(rawJsonText, new TypeReference<List<FlashcardResponse>>() {});
+            return objectMapper.readValue(rawJsonText, new TypeReference<List<QAPairs>>() {
+            });
 
-        } catch (Exception e){
+        } catch (Exception e) {
             System.err.println("Gemini API error: " + e.getMessage());
             e.printStackTrace();
             return getFallbackFlashcards();
         }
     }
-    private List<FlashcardResponse> getFallbackFlashcards(){
-        return List.of(
-                new FlashcardResponse(
-                        "What is the primary goal of the AI study Platflorm?",
-                        "To Convert uploaded PDF study note into interactive Q&A flashcards for efficient learning."
-                ),
-                new FlashcardResponse(
-                        "How does the daily credit system work for FREE users?",
-                        "FREE users receive a limited quota of 3 flashcard generations per day, which resets daily."
-                ),
-                new FlashcardResponse(
-                        "What are the benefits of upgrading to the PREMIUM plan?",
-                        "PREMIUM users receive unlimited flashcard generations and get access to advanced features."
-                )
-        );
 
+    private List<QAPairs> getFallbackFlashcards() {
+        return List.of(
+                new QAPairs(
+                        "What is the primary goal of the AI study Platflorm?",
+                        "To Convert uploaded PDF study note into interactive Q&A flashcards for efficient learning."),
+                new QAPairs(
+                        "How does the daily credit system work for FREE users?",
+                        "FREE users receive a limited quota of 3 flashcard generations per day, which resets daily."),
+                new QAPairs(
+                        "What are the benefits of upgrading to the PREMIUM plan?",
+                        "PREMIUM users receive unlimited flashcard generations and get access to advanced features."));
 
     }
-
 
 }
