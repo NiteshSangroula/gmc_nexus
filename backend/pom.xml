@@ -59,7 +59,12 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
-
+        <!-- PDF Scan extract raw text from pdf -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.2</version>
+        </dependency>
         <!-- test starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
