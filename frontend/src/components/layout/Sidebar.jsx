@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import {
   FileText,
   LayoutDashboard,
@@ -63,6 +64,9 @@ const menuItems = [
 ];
 
 const Sidebar = ({ isMobileOpen, closeMobileSidebar }) => {
+  const { user } = useAuth();
+  const plan = user?.plan || "PRO";
+
   return (
     <>
       {/* Mobile Backdrop */}
@@ -133,7 +137,7 @@ const Sidebar = ({ isMobileOpen, closeMobileSidebar }) => {
           <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-900 p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-900 dark:text-white">
-                Pro Account
+                {plan} Account
               </span>
               <span className="rounded bg-orange-100 dark:bg-orange-500/20 px-2 py-0.5 text-[10px] font-bold text-orange-700 dark:text-orange-400">
                 Active Plan

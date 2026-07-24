@@ -1,9 +1,15 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Sun, Moon, Bell, Menu, X, Sparkles, User, LogOut, ChevronDown } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
 const Navbar = ({ toggleMobileSidebar }) => {
   const { theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
@@ -31,9 +37,25 @@ const Navbar = ({ toggleMobileSidebar }) => {
     },
   ];
 
+  const handleSignOut = () => {
+    logout();
+    toast.success("Signed out successfully");
+    navigate("/login");
+  };
+
+  const usernameDisplay = user?.username || user?.email?.split("@")[0] || "Student";
+  const userEmailDisplay = user?.email || "student@gmc.edu";
+  const userPlan = user?.plan || "PRO";
+  
+  const getInitials = (name) => {
+    if (!name) return "ST";
+    const parts = name.split(" ");
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return name.substring(0, 2).toUpperCase();
+  };
+
   return (
     <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-[#0b0c10]/90 px-6 backdrop-blur-md transition-colors duration-200 shadow-xs">
-
       <div className="flex items-center gap-4">
         <button
           onClick={toggleMobileSidebar}
@@ -125,14 +147,14 @@ const Navbar = ({ toggleMobileSidebar }) => {
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="flex items-center gap-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-900 p-1.5 pr-3 transition-all hover:border-orange-500/50 shadow-xs"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to from-orange-500 to-amber-600 text-xs font-extrabold text-white shadow-xs">
-              RN
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 to-amber-600 text-xs font-extrabold text-white shadow-xs">
+              {getInitials(usernameDisplay)}
             </div>
             <div className="hidden text-left sm:block">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold text-slate-900 dark:text-white">User101</span>
+                <span className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-28">{usernameDisplay}</span>
                 <span className="rounded bg-orange-600 text-[9px] font-extrabold uppercase text-white px-1.5 py-0.2">
-                  PRO
+                  {userPlan}
                 </span>
               </div>
             </div>
@@ -142,15 +164,22 @@ const Navbar = ({ toggleMobileSidebar }) => {
           {showProfileMenu && (
             <div className="absolute right-0 mt-3 w-56 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13141c] p-2 shadow-xl backdrop-blur-xl z-50">
               <div className="border-b border-slate-100 dark:border-white/10 px-3 py-2">
-                <p className="text-xs font-bold text-slate-900 dark:text-white">User101</p>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">User101@example.com</p>
+                <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{usernameDisplay}</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{userEmailDisplay}</p>
               </div>
               <div className="mt-1 space-y-0.5">
-                <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800">
+                <Link
+                  to="/settings"
+                  onClick={() => setShowProfileMenu(false)}
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800"
+                >
                   <User size={15} />
                   Profile Settings
-                </button>
-                <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40">
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                >
                   <LogOut size={15} />
                   Sign Out
                 </button>
