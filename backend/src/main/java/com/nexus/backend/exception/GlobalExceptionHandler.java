@@ -30,8 +30,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiResponse);
     }
-
-    @ExceptionHandler(InvalidCredentialsException.class)
+    @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ApiResponse<Void>> handleDuplicateResource(
             DuplicateResourceException ex,
             HttpServletRequest request) {
@@ -42,6 +41,30 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(apiResponse);
     }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidCredentials(
+            InvalidCredentialsException ex,
+            HttpServletRequest request) {
+        ApiResponse<Void> apiResponse = ApiResponse.error(
+                ex.getMessage(),
+                null,
+                request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiResponse);
+    }
+
+//    @ExceptionHandler(InvalidCredentialsException.class)
+//    public ResponseEntity<ApiResponse<Void>> handleDuplicateResource(
+//            DuplicateResourceException ex,
+//            HttpServletRequest request) {
+//        ApiResponse<Void> apiResponse = ApiResponse.error(
+//                ex.getMessage(),
+//                null,
+//                request.getRequestURI());
+//
+//        return ResponseEntity.status(HttpStatus.CONFLICT).body(apiResponse);
+//    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationException(
