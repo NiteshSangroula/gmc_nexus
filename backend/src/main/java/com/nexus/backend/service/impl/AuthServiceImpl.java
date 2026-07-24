@@ -1,5 +1,7 @@
 package com.nexus.backend.service.impl;
 
+import java.time.LocalDate;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -10,11 +12,11 @@ import com.nexus.backend.config.JwtProperties;
 import com.nexus.backend.dto.request.LoginRequest;
 import com.nexus.backend.dto.request.RegisterRequest;
 import com.nexus.backend.dto.response.AuthResponse;
+import com.nexus.backend.entity.Plan;
 import com.nexus.backend.entity.Role;
 import com.nexus.backend.entity.User;
 import com.nexus.backend.exception.DuplicateResourceException;
 import com.nexus.backend.exception.InvalidCredentialsException;
-import com.nexus.backend.exception.ResourceNotFoundException;
 import com.nexus.backend.repository.UserRepository;
 import com.nexus.backend.security.JwtUtil;
 import com.nexus.backend.service.AuthService;
@@ -47,7 +49,9 @@ public class AuthServiceImpl implements AuthService {
         User user = User.builder()
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
-                .role(Role.ROLE_USER)
+                .plan(Plan.FREE)
+                .credits(3)
+                .lastReset(LocalDate.now())
                 .build();
 
         userRepository.save(user);
