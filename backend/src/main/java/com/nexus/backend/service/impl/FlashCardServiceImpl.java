@@ -61,7 +61,7 @@ public class FlashCardServiceImpl implements FlashCardService {
 
     @Override
     public Page<FlashCardResponse> getAllFlashCards(Long userId, Pageable pageable) {
-        return flashCardRepository.findByUserId(userId, pageable)
+        return flashCardRepository.findByUser_Id(userId, pageable)
                 .map(this::mapToResponse);
     }
 
@@ -191,4 +191,3 @@ public class FlashCardServiceImpl implements FlashCardService {
     }
 
 }
-
