@@ -7,7 +7,8 @@ import java.time.LocalDateTime;
  */
 public record FlashCardResponse(
         Long id,
-        String title,
+        String deckId,
+        String deckTitle,
         String question,
         String answer,
         LocalDateTime createdAt) {
