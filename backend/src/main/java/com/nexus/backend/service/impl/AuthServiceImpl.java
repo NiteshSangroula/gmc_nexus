@@ -13,7 +13,6 @@ import com.nexus.backend.dto.request.LoginRequest;
 import com.nexus.backend.dto.request.RegisterRequest;
 import com.nexus.backend.dto.response.AuthResponse;
 import com.nexus.backend.entity.Plan;
-import com.nexus.backend.entity.Role;
 import com.nexus.backend.entity.User;
 import com.nexus.backend.exception.DuplicateResourceException;
 import com.nexus.backend.exception.InvalidCredentialsException;
