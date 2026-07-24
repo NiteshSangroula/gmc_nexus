@@ -70,8 +70,7 @@ class AuthServiceImplTest {
         assertThat(response.expiresIn()).isEqualTo(86400);
 
         verify(userRepository).save(argThat(user -> user.getEmail().equals("test@example.com") &&
-                user.getPassword().equals("hashed-password") &&
-                user.getRole() == Role.ROLE_USER));
+                user.getPassword().equals("hashed-password")));
     }
 
     @Test
@@ -91,7 +90,6 @@ class AuthServiceImplTest {
         User user = User.builder()
                 .email("test@example.com")
                 .password("hashed-password")
-                .role(Role.ROLE_USER)
                 .build();
 
         when(userRepository.findByEmail(loginRequest.email())).thenReturn(Optional.of(user));

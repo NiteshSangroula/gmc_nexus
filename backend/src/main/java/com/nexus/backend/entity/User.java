@@ -1,9 +1,11 @@
 package com.nexus.backend.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -36,12 +38,20 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(nullable = false)
     private String password;
 
-    private String name;
+    private String username;
 
     @Enumerated(EnumType.STRING)
-    private Role role;
+    @Column(nullable = false)
+    private Plan plan;
+
+    @Column(nullable = false)
+    private int credits;
+
+    @Column(nullable = false)
+    private LocalDate lastReset;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
