@@ -21,6 +21,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
+import org.springframework.web.bind.annotation.GetMapping;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/api/pdf")
 @RequiredArgsConstructor
@@ -61,5 +65,29 @@ public class PdfController {
 
     }
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<PdfDocumentResponse>>> listPdfs(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Authenticated User not found "));
+
+        List<PdfDocument> pdfs = pdfDocumentRepository.findByUser(user);
+
+        List<PdfDocumentResponse> responseData = pdfs.stream()
+                .map(doc -> {
+                    String preview = doc.getExtractedText() != null
+                            ? doc.getExtractedText().substring(0, Math.min(doc.getExtractedText().length(), 100))
+                            : "";
+                    return new PdfDocumentResponse(
+                            doc.getId(),
+                            doc.getFilename(),
+                            preview,
+                            doc.getUploadedAt()
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(ApiResponse.success(responseData, "PDF list retrieved successfully."));
+    }
 
 }
