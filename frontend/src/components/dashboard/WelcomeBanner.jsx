@@ -1,114 +1,73 @@
-import { Sparkles, Upload, ArrowRight } from "lucide-react";
+import { Upload, Layers, ArrowRight, FileText, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const WelcomeBanner = () => {
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-700 p-8 text-white shadow-xl">
+    <div className="relative overflow-hidden rounded-3xl bg-slate-900 dark:bg-[#12131b] p-6 sm:p-8 text-white shadow-md border border-slate-800 dark:border-white/10">
+      <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
 
-      {/* Background Decorations */}
-      <div className="absolute -top-20 -right-20 h-60 w-60 rounded-full bg-white/10 blur-3xl"></div>
-      <div className="absolute bottom-0 left-1/3 h-40 w-40 rounded-full bg-indigo-300/20 blur-2xl"></div>
-
-      <div className="relative flex flex-col justify-between gap-8 lg:flex-row lg:items-center">
-
-        {/* Left Side */}
-        <div className="max-w-2xl">
-
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 backdrop-blur-md">
-            <Sparkles size={18} />
-            <span className="text-sm font-medium">
-              AI Powered Learning
-            </span>
+        <div className="max-w-xl">
+          <div className="inline-flex items-center gap-2 rounded-full bg-slate-800 dark:bg-white/10 px-3.5 py-1 text-xs font-semibold text-orange-400 mb-3 border border-slate-700 dark:border-white/10">
+            <span className="h-2 w-2 rounded-full bg-orange-500"></span>
+            <span>Study Workspace</span>
           </div>
 
-          <h1 className="text-4xl font-bold leading-tight">
-            Welcome back,
-            <span className="block text-indigo-100">
-              Ready to master your next subject?
-            </span>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+            Welcome back !!
           </h1>
-
-          <p className="mt-5 max-w-xl text-indigo-100 text-lg leading-relaxed">
-            Upload your PDF notes and let AI generate beautiful flashcards
-            instantly. Study smarter, revise faster, and retain more.
+          <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Convert your lecture notes, textbook chapters, and slides into active recall study decks for faster revision.
           </p>
 
-          <div className="mt-8 flex gap-4">
-
+          <div className="mt-6 flex flex-wrap items-center gap-3">
             <Link
               to="/upload"
-              className="flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-indigo-700 transition hover:scale-105 hover:shadow-lg"
+              className="flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-orange-500 transition-all"
             >
-              <Upload size={18} />
-              Upload PDF
+              <Upload size={16} />
+              Upload PDF Notes
             </Link>
 
-            <button className="flex items-center gap-2 rounded-xl border border-white/30 px-6 py-3 backdrop-blur-md transition hover:bg-white/10">
-              Learn More
-              <ArrowRight size={18} />
-            </button>
-
+            <Link
+              to="/library"
+              className="flex items-center gap-2 rounded-xl border border-slate-700 dark:border-white/20 bg-slate-800/80 dark:bg-white/5 px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition-all"
+            >
+              <Layers size={16} />
+              Browse Study Decks
+            </Link>
           </div>
-
         </div>
 
-        {/* Right Side */}
-
-        <div className="hidden lg:flex">
-
-          <div className="rounded-3xl border border-white/20 bg-white/10 p-8 backdrop-blur-lg">
-
-            <div className="grid grid-cols-2 gap-6">
-
-              <div>
-                <p className="text-4xl font-bold">
-                  250+
-                </p>
-
-                <p className="mt-2 text-indigo-100">
-                  Flashcards
-                </p>
-              </div>
-
-              <div>
-                <p className="text-4xl font-bold">
-                  12
-                </p>
-
-                <p className="mt-2 text-indigo-100">
-                  PDFs
-                </p>
-              </div>
-
-              <div>
-                <p className="text-4xl font-bold">
-                  95%
-                </p>
-
-                <p className="mt-2 text-indigo-100">
-                  Accuracy
-                </p>
-              </div>
-
-              <div>
-                <p className="text-4xl font-bold">
-                  AI
-                </p>
-
-                <p className="mt-2 text-indigo-100">
-                  Powered
-                </p>
-              </div>
-
+        <div className="flex flex-col gap-3 rounded-2xl border border-slate-800 dark:border-white/10 bg-slate-800/60 dark:bg-white/5 p-5 min-w-65">
+          <div className="flex items-center justify-between border-b border-slate-700 dark:border-white/10 pb-3">
+            <div className="flex items-center gap-2">
+              <FileText size={18} className="text-orange-400" />
+              <span className="text-xs font-bold text-white">Current Active Deck</span>
             </div>
-
+            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
+              Ready
+            </span>
           </div>
 
+          <div className="space-y-1">
+            <h4 className="text-xs font-bold text-slate-200">
+              Machine Learning Basics.pdf
+            </h4>
+            <p className="text-[11px] text-slate-400">
+              24 Flashcards • 4 Topics Covered
+            </p>
+          </div>
+
+          <Link
+            to="/library"
+            className="mt-2 flex items-center justify-between text-xs font-bold text-orange-400 hover:text-orange-300"
+          >
+            <span>Start Practice Session</span>
+            <ArrowRight size={14} />
+          </Link>
         </div>
-
       </div>
-
-    </section>
+    </div>
   );
 };
 

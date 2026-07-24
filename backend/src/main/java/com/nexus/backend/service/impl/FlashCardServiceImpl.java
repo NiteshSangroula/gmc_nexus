@@ -142,7 +142,7 @@ public class FlashCardServiceImpl implements FlashCardService {
         }
 
         String deckId = java.util.UUID.randomUUID().toString();
-        List<FlashCard> flashcards = mapToEntities(userId, pairs, deckTitle, deckId);
+        List<FlashCard> flashcards = mapToEntities(user, pairs, deckTitle, deckId);
         List<FlashCard> saved = flashCardRepository.saveAll(flashcards);
 
         decrementCreditsIfNeeded(user);
@@ -150,14 +150,12 @@ public class FlashCardServiceImpl implements FlashCardService {
         return mapToResponses(saved);
     }
 
-    private List<FlashCard> mapToEntities(Long userId, List<QAPairs> pairs, String deckTitle, String deckId) {
+    private List<FlashCard> mapToEntities(User user, List<QAPairs> pairs, String deckTitle, String deckId) {
         LocalDateTime now = LocalDateTime.now();
 
         return pairs.stream()
                 .map(pair -> {
                     FlashCard fc = new FlashCard();
-                    User user = new User();
-                    user.setId(userId);
                     fc.setUser(user);
                     fc.setDeckId(deckId);
                     fc.setDeckTitle(deckTitle);
