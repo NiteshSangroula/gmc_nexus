@@ -8,6 +8,7 @@ import com.nexus.backend.entity.Plan;
 public record UserResponse(
         Long id,
         String email,
+        String username,
         Plan plan,
         int credits) {
 }
