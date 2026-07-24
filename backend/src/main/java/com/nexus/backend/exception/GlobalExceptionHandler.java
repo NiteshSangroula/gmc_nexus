@@ -31,6 +31,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiResponse);
     }
 
+    @ExceptionHandler(InsufficientCreditException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInsufficientCreditException(
+            InsufficientCreditException ex,
+            HttpServletRequest request) {
+        ApiResponse<Void> apiResponse = ApiResponse.error(
+                ex.getMessage(),
+                null,
+                request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(apiResponse);
+    }
+
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ApiResponse<Void>> handleDuplicateResource(
             DuplicateResourceException ex,
