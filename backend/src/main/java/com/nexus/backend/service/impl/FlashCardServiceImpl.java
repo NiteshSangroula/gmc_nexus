@@ -63,7 +63,8 @@ public class FlashCardServiceImpl implements FlashCardService {
             throw new AiGenerationException("AI did not return any flashcards. Please try again.");
         }
 
-        List<FlashCard> flashcards = mapToEntities(userId, pairs, deckTitle);
+        String deckId = java.util.UUID.randomUUID().toString();
+        List<FlashCard> flashcards = mapToEntities(userId, pairs, deckTitle, deckId);
         List<FlashCard> saved = flashCardRepository.saveAll(flashcards);
 
         decrementCreditsIfNeeded(user);
@@ -71,13 +72,16 @@ public class FlashCardServiceImpl implements FlashCardService {
         return mapToResponses(saved);
     }
 
-    private List<FlashCard> mapToEntities(Long userId, List<QAPairs> pairs, String deckTitle) {
+    private List<FlashCard> mapToEntities(Long userId, List<QAPairs> pairs, String deckTitle, String deckId) {
         LocalDateTime now = LocalDateTime.now();
 
         return pairs.stream()
                 .map(pair -> {
                     FlashCard fc = new FlashCard();
-                    fc.getUser().setId(userId);
+                    User user = new User();
+                    user.setId(userId);
+                    fc.setUser(user);
+                    fc.setDeckId(deckId);
                     fc.setDeckTitle(deckTitle);
                     fc.setQuestion(pair.question());
                     fc.setAnswer(pair.answer());

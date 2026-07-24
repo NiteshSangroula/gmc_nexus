@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService {
         if (user.getPlan() == Plan.PREMIUM)
             return;
 
-        if (user.getCredits() < 0) {
+        if (user.getCredits() <= 0) {
             throw new InsufficientCreditException("No credits remaining. Try again tomorrow or upgrade to Premium");
         }
     }
