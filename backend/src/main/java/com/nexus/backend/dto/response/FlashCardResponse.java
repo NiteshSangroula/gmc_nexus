@@ -11,5 +11,6 @@ public record FlashCardResponse(
         String deckTitle,
         String question,
         String answer,
-        LocalDateTime createdAt) {
+        LocalDateTime createdAt,
+        Long ownerId) {
 }
