@@ -5,6 +5,6 @@ import org.springframework.stereotype.Repository;
 import com.nexus.backend.entity.PdfDocument;
 
 @Repository
-public interface PdfDocumentRepository extends JpaRepository<PdfDocument, Long>{
+public interface PdfDocumentRepository extends JpaRepository<PdfDocument, Long> {
 
 }

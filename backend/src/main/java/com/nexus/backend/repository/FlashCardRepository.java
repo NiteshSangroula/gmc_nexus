@@ -16,7 +16,7 @@ public interface FlashCardRepository extends JpaRepository<FlashCard, Long> {
 
     List<FlashCard> findByUserId(Long userId);
 
-    Page<FlashCard> findByUserId(Long userId, Pageable pageable);
+    Page<FlashCard> findByUser_Id(Long userId, Pageable pageable);
 
     void deleteByUserAndDeckId(User user, String deckId);
 
@@ -24,4 +24,3 @@ public interface FlashCardRepository extends JpaRepository<FlashCard, Long> {
     List<Object[]> findDistinctDeckByUser(User user);
 
 }
-
