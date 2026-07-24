@@ -1,0 +1,28 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+spring:
+  profiles:
+    active: dev
+  application:
+    name: nexus-backend
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  secret: ${JWT_SECRET:dev-only-fallback-secret-change-me}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+server:
+  port: 8080
