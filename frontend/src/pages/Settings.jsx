@@ -1,18 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { useTheme } from "../context/ThemeContext";
-import { User, Sun, Moon, Bell, Shield, Save, CheckCircle } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { User, Sun, Moon, Save, CheckCircle } from "lucide-react";
+import toast from "react-hot-toast";
 
 const SettingsPage = () => {
   const { theme, setTheme } = useTheme();
+  const { user } = useAuth();
   const [savedSuccess, setSavedSuccess] = useState(false);
-  const [name, setName] = useState("Rohan");
-  const [email, setEmail] = useState("rohan@example.com");
+
+  const [name, setName] = useState(user?.username || "Student");
+  const [email, setEmail] = useState(user?.email || "student@gmc.edu");
+
+  useEffect(() => {
+    if (user) {
+      setName(user.username || user.email?.split("@")[0] || "Student");
+      setEmail(user.email || "student@gmc.edu");
+    }
+  }, [user]);
 
   const handleSave = (e) => {
     e.preventDefault();
     setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 2000);
+    toast.success("Settings saved successfully!");
+    setTimeout(() => setSavedSuccess(false), 2500);
   };
 
   return (
