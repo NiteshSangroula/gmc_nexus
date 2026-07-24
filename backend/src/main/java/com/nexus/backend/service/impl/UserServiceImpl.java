@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
-
     public UserResponse getCurrentUser(Authentication auth) {
         String email = auth.getName();
         User user = userRepository.findByEmail(email)
@@ -89,7 +88,7 @@ public class UserServiceImpl implements UserService {
                 user.getPlan(),
                 user.getCredits());
     }
-    
+
     @Override
     @org.springframework.transaction.annotation.Transactional
     public UpdateProfileResponse updateProfile(Authentication auth, UpdateProfileRequest request) {
