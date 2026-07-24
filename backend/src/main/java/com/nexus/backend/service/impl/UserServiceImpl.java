@@ -66,6 +66,20 @@ public class UserServiceImpl implements UserService {
 
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id " + userId + "doesn't exist"));
+                .orElseThrow(() -> new ResourceNotFoundException("User with id " + userId + " doesn't exist"));
+    }
+
+    public UserResponse upgradeToPremium(Authentication auth) {
+        String email = auth.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        user.setPlan(Plan.PREMIUM);
+        userRepository.save(user);
+        return new UserResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getPlan(),
+                user.getCredits());
     }
 }
