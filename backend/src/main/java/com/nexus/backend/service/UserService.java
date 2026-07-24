@@ -20,4 +20,6 @@ public interface UserService {
 
     public User getUserById(Long userId);
 
+    public UserResponse upgradeToPremium(Authentication auth);
+
 }
