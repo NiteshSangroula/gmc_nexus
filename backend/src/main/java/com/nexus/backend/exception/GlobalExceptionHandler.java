@@ -30,56 +30,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiResponse);
     }
-
-    @ExceptionHandler(InsufficientCreditException.class)
-    public ResponseEntity<ApiResponse<Void>> handleInsufficientCreditException(
-            InsufficientCreditException ex,
-            HttpServletRequest request) {
-        ApiResponse<Void> apiResponse = ApiResponse.error(
-                ex.getMessage(),
-                null,
-                request.getRequestURI());
-
-        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(apiResponse);
-    }
-
-    @ExceptionHandler(AiGenerationException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAiGenerationException(
-            AiGenerationException ex,
-            HttpServletRequest request) {
-        ApiResponse<Void> apiResponse = ApiResponse.error(
-                ex.getMessage(),
-                null,
-                request.getRequestURI());
-
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(apiResponse);
-    }
-
-    @ExceptionHandler(InvalidFileException.class)
-    public ResponseEntity<ApiResponse<Void>> handleInvalidFileException(
-            InvalidFileException ex,
-            HttpServletRequest request) {
-        ApiResponse<Void> apiResponse = ApiResponse.error(
-                ex.getMessage(),
-                null,
-                request.getRequestURI());
-
-        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(apiResponse);
-    }
-
-    @ExceptionHandler(UnauthorizedAccessException.class)
-    public ResponseEntity<ApiResponse<Void>> handleUnauthorizedAccessException(
-            UnauthorizedAccessException ex,
-            HttpServletRequest request) {
-        ApiResponse<Void> apiResponse = ApiResponse.error(
-                ex.getMessage(),
-                null,
-                request.getRequestURI());
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiResponse);
-    }
-
-    @ExceptionHandler(InvalidCredentialsException.class)
+    @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ApiResponse<Void>> handleDuplicateResource(
             DuplicateResourceException ex,
             HttpServletRequest request) {
@@ -90,6 +41,30 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(apiResponse);
     }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidCredentials(
+            InvalidCredentialsException ex,
+            HttpServletRequest request) {
+        ApiResponse<Void> apiResponse = ApiResponse.error(
+                ex.getMessage(),
+                null,
+                request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiResponse);
+    }
+
+//    @ExceptionHandler(InvalidCredentialsException.class)
+//    public ResponseEntity<ApiResponse<Void>> handleDuplicateResource(
+//            DuplicateResourceException ex,
+//            HttpServletRequest request) {
+//        ApiResponse<Void> apiResponse = ApiResponse.error(
+//                ex.getMessage(),
+//                null,
+//                request.getRequestURI());
+//
+//        return ResponseEntity.status(HttpStatus.CONFLICT).body(apiResponse);
+//    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationException(
