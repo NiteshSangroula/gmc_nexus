@@ -13,12 +13,14 @@ import java.util.List;
 @Repository
 public interface FlashCardRepository extends JpaRepository<FlashCard, Long> {
     List<FlashCard> findByUserAndDeckId(User user, String deckId);
+    List<FlashCard> findByDeckId(String deckId);
 
     List<FlashCard> findByUserId(Long userId);
 
     Page<FlashCard> findByUser_Id(Long userId, Pageable pageable);
 
     void deleteByUserAndDeckId(User user, String deckId);
+    void deleteByUserAndDeckTitle(User user, String deckTitle);
 
     @Query("SELECT DISTINCT f.deckId, f.deckTitle, f.createdAt FROM FlashCard f WHERE f.user = :user")
     List<Object[]> findDistinctDeckByUser(User user);
