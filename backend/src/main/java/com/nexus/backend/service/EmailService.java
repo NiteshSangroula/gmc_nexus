@@ -24,6 +24,7 @@ public class EmailService {
         this.apiKey = apiKey;
         this.fromName = fromName;
         this.fromEmail = fromEmail;
+        System.out.println("[✉️ EmailService] Initialized with sender: " + fromName + " <" + fromEmail + ">, API Key (first 10 chars): " + (apiKey != null && apiKey.length() > 10 ? apiKey.substring(0, 10) + "..." : "invalid"));
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(5))
                 .build();
