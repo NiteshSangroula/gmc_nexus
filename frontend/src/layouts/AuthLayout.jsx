@@ -16,7 +16,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
           </div>
           <div>
             <h1 className="text-2xl font-black tracking-tight">GMC Nexus</h1>
-            <p className="text-xs text-orange-100 font-medium">AI PDF to Flashcard Engine</p>
+            <p className="text-xs text-orange-100 font-medium">Flash AI Engine</p>
           </div>
         </div>
 
