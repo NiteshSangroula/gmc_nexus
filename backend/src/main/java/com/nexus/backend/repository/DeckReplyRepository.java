@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface DeckReplyRepository extends JpaRepository<DeckReply, Long> {
     List<DeckReply> findByDeckIdOrderByCreatedAtAsc(String deckId);
+    long countByDeckId(String deckId);
 }

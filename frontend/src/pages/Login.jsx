@@ -36,9 +36,10 @@ const Login = () => {
         setError("Invalid email or password. Please try again.");
         toast.error("Sign in failed.");
       }
-    } catch {
-      setError("An unexpected error occurred. Please try again.");
-      toast.error("Connection error during sign in.");
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || "An unexpected error occurred. Please try again.";
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

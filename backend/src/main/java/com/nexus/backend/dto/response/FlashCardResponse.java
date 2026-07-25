@@ -12,5 +12,7 @@ public record FlashCardResponse(
         String question,
         String answer,
         LocalDateTime createdAt,
-        Long ownerId) {
+        Long ownerId,
+        long likesCount,
+        long commentsCount) {
 }

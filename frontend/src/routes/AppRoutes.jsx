@@ -10,7 +10,6 @@ import HistoryPage from "../pages/History";
 import PremiumPage from "../pages/Premium";
 
 import SettingsPage from "../pages/Settings";
-import SupportPage from "../pages/Support";
 import PublicLibraryPage from "../pages/PublicLibrary";
 
 const AppRoutes = () => {
@@ -84,14 +83,6 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <SettingsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/support"
-          element={
-            <ProtectedRoute>
-              <SupportPage />
             </ProtectedRoute>
           }
         />
