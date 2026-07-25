@@ -30,6 +30,18 @@ export const authApi = {
     const response = await api.get("/user/credits");
     return response.data;
   },
+
+  upgradeToPremium: async () => {
+    const response = await api.post("/user/premium");
+    return response.data;
+  },
+
+
+
+  updateProfile: async (username, email) => {
+    const response = await api.put("/user", { username, email });
+    return response.data;
+  },
 };
 
 export default authApi;
