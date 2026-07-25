@@ -22,6 +22,7 @@ import com.nexus.backend.repository.UserRepository;
 import com.nexus.backend.service.AiService;
 import com.nexus.backend.service.FlashCardService;
 import com.nexus.backend.service.UserService;
+import com.nexus.backend.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,6 +36,7 @@ public class FlashCardServiceImpl implements FlashCardService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final AiService aiService;
+    private final NotificationService notificationService;
 
     @Override
     public FlashCardResponse createFlashCard(Long userId, FlashCardRequest request) {
@@ -146,6 +148,12 @@ public class FlashCardServiceImpl implements FlashCardService {
         List<FlashCard> saved = flashCardRepository.saveAll(flashcards);
 
         decrementCreditsIfNeeded(user);
+
+        notificationService.createNotification(
+                userId,
+                "Flashcard Deck Created",
+                "Your PDF '" + deckTitle + "' has been successfully processed into " + saved.size() + " flashcards."
+        );
 
         return mapToResponses(saved);
     }

@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Sun, Moon, Bell, Menu, X, Sparkles, User, LogOut, ChevronDown } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
+import notificationApi from "../../api/notificationApi";
 
 const Navbar = ({ toggleMobileSidebar }) => {
   const { theme, toggleTheme } = useTheme();
@@ -12,30 +13,47 @@ const Navbar = ({ toggleMobileSidebar }) => {
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
-  const notifications = [
-    {
-      id: 1,
-      title: "Flashcard Deck Created",
-      desc: "Machine Learning Basics deck with 24 cards is ready to study.",
-      time: "10 min ago",
-      unread: true,
-    },
-    {
-      id: 2,
-      title: "7-Day Study Streak!",
-      desc: "Great job! You completed all daily review sessions this week.",
-      time: "2 hours ago",
-      unread: true,
-    },
-    {
-      id: 3,
-      title: "PDF File Processed",
-      desc: "Data Structures Notes parsed successfully.",
-      time: "Yesterday",
-      unread: false,
-    },
-  ];
+  // Fetch notifications
+  const fetchNotifications = async () => {
+    try {
+      if (!user) return;
+      const res = await notificationApi.getNotifications();
+      setNotifications(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+
+    // Poll every 8 seconds for new notifications
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [user]);
+
+  const handleToggleNotifications = async () => {
+    const willShow = !showNotifications;
+    setShowNotifications(willShow);
+    
+    if (willShow && unreadCount > 0) {
+      try {
+        // Mark all as read on backend
+        await notificationApi.markAllAsRead();
+        // Update local state
+        setNotifications((prev) =>
+          prev.map((n) => ({ ...n, unread: false }))
+        );
+      } catch (err) {
+        console.error("Failed to mark notifications as read:", err);
+      }
+    }
+  };
 
   const handleSignOut = () => {
     logout();
@@ -43,9 +61,26 @@ const Navbar = ({ toggleMobileSidebar }) => {
     navigate("/login");
   };
 
+  const formatTime = (isoString) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
+  const unreadCount = notifications.filter((n) => n.unread).length;
   const usernameDisplay = user?.username || user?.email?.split("@")[0] || "Student";
   const userEmailDisplay = user?.email || "student@gmc.edu";
-  const userPlan = user?.plan || "PRO";
+  const userPlan = user?.plan || "FREE";
   
   const getInitials = (name) => {
     if (!name) return "ST";
@@ -75,16 +110,19 @@ const Navbar = ({ toggleMobileSidebar }) => {
       </div>
 
       <div className="flex items-center gap-3">
+        {/* Notifications Dropdown */}
         <div className="relative">
           <button
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={handleToggleNotifications}
             className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100/80 dark:bg-zinc-900 text-slate-700 dark:text-slate-300 transition-all hover:border-orange-500/50 hover:bg-slate-200/80 dark:hover:bg-zinc-800 shadow-xs"
             aria-label="Notifications"
           >
             <Bell size={19} />
-            <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-600 text-[10px] font-bold text-white shadow-xs">
-              2
-            </span>
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-600 text-[10px] font-bold text-white shadow-xs animate-pulse">
+                {unreadCount}
+              </span>
+            )}
           </button>
 
           {showNotifications && (
@@ -92,9 +130,11 @@ const Navbar = ({ toggleMobileSidebar }) => {
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
                 <div className="flex items-center gap-2">
                   <h3 className="font-bold text-slate-900 dark:text-white text-sm">Notifications</h3>
-                  <span className="rounded-full bg-orange-100 dark:bg-orange-500/20 px-2 py-0.5 text-xs font-semibold text-orange-700 dark:text-orange-400">
-                    2 New
-                  </span>
+                  {unreadCount > 0 && (
+                    <span className="rounded-full bg-orange-100 dark:bg-orange-500/20 px-2 py-0.5 text-xs font-semibold text-orange-700 dark:text-orange-400 animate-pulse">
+                      {unreadCount} New
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={() => setShowNotifications(false)}
@@ -104,26 +144,32 @@ const Navbar = ({ toggleMobileSidebar }) => {
                 </button>
               </div>
 
-              <div className="mt-3 space-y-2 max-h-72 overflow-y-auto">
-                {notifications.map((notif) => (
-                  <div
-                    key={notif.id}
-                    className={`flex items-start gap-3 rounded-xl p-3 transition-colors ${
-                      notif.unread
-                        ? "bg-orange-50/70 dark:bg-orange-500/10 border border-orange-200/80 dark:border-orange-500/20"
-                        : "hover:bg-slate-50 dark:hover:bg-zinc-800/50"
-                    }`}
-                  >
-                    <div className="mt-0.5 rounded-lg bg-orange-500/20 p-1.5 text-orange-600 dark:text-orange-400">
-                      <Sparkles size={15} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">{notif.title}</h4>
-                      <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">{notif.desc}</p>
-                      <span className="mt-1 block text-[10px] text-slate-400 dark:text-slate-500">{notif.time}</span>
-                    </div>
+              <div className="mt-3 space-y-2 max-h-72 overflow-y-auto pr-1 scrollbar-thin">
+                {notifications.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+                    No notifications yet.
                   </div>
-                ))}
+                ) : (
+                  notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      className={`flex items-start gap-3 rounded-xl p-3 border transition-colors ${
+                        notif.unread
+                          ? "bg-orange-50/70 dark:bg-orange-500/10 border-orange-200/80 dark:border-orange-500/20"
+                          : "border-transparent hover:bg-slate-50 dark:hover:bg-zinc-800/50"
+                      }`}
+                    >
+                      <div className="mt-0.5 rounded-lg bg-orange-500/20 p-1.5 text-orange-600 dark:text-orange-400">
+                        <Sparkles size={15} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">{notif.title}</h4>
+                        <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 leading-normal break-words">{notif.message}</p>
+                        <span className="mt-1 block text-[10px] text-slate-400 dark:text-slate-500">{formatTime(notif.createdAt)}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}

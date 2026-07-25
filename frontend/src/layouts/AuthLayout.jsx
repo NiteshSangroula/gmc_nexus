@@ -58,7 +58,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
 
         {/* Footer info */}
         <div className="relative z-10 text-xs text-orange-200 flex items-center justify-between border-t border-white/15 pt-6">
-          <span>© 2026 GMC Nexus. All rights reserved.</span>
+          <span>© 2026 Flash AI. All rights reserved.</span>
           <span className="flex items-center gap-1 font-medium"><BookOpenCheck size={14} /> Smart Study System</span>
         </div>
       </div>
