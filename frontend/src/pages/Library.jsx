@@ -49,9 +49,17 @@ const LibraryPage = () => {
     fetchUserDecks();
   }, []);
 
-  const filteredDecks = decks.filter((deck) =>
-    deck.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredDecks = decks.filter((deck) => {
+    const query = searchQuery.toLowerCase();
+    const titleMatch = deck.title?.toLowerCase().includes(query) || false;
+    const catMatch = deck.category?.toLowerCase().includes(query) || false;
+    const cardsMatch = deck.cards?.some(
+      (card) =>
+        card.q?.toLowerCase().includes(query) ||
+        card.a?.toLowerCase().includes(query)
+    ) || false;
+    return titleMatch || catMatch || cardsMatch;
+  });
 
   const openDeckModal = (deck) => {
     setSelectedDeck(deck);
@@ -60,13 +68,13 @@ const LibraryPage = () => {
   };
 
   const handleNextCard = () => {
-    if (!selectedDeck) return;
+    if (!selectedDeck || !selectedDeck.cards || !selectedDeck.cards.length) return;
     setIsFlipped(false);
     setCurrentCardIndex((prev) => (prev + 1) % selectedDeck.cards.length);
   };
 
   const handlePrevCard = () => {
-    if (!selectedDeck) return;
+    if (!selectedDeck || !selectedDeck.cards || !selectedDeck.cards.length) return;
     setIsFlipped(false);
     setCurrentCardIndex((prev) => (prev - 1 + selectedDeck.cards.length) % selectedDeck.cards.length);
   };

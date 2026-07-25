@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Sun, Moon, Bell, Menu, X, Sparkles, User, LogOut, ChevronDown } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
@@ -14,6 +14,27 @@ const Navbar = ({ toggleMobileSidebar }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  // Scroll handler to hide/show navbar
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Hide on scroll down past 80px, show on scroll up
+      if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+      
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Fetch notifications
   const fetchNotifications = async () => {
@@ -90,7 +111,9 @@ const Navbar = ({ toggleMobileSidebar }) => {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-[#0b0c10]/90 px-6 backdrop-blur-md transition-colors duration-200 shadow-xs">
+    <header className={`sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-[#0b0c10]/90 px-6 backdrop-blur-md transition-all duration-300 shadow-xs transform ${
+      isVisible ? "translate-y-0" : "-translate-y-full"
+    }`}>
       <div className="flex items-center gap-4">
         <button
           onClick={toggleMobileSidebar}

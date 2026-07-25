@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import MainLayout from "../layouts/MainLayout";
-import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
-import { User, Sun, Moon, Save, CheckCircle } from "lucide-react";
+import { User, Save, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 const SettingsPage = () => {
-  const { theme, setTheme } = useTheme();
   const { user } = useAuth();
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -70,47 +68,6 @@ const SettingsPage = () => {
             </div>
           </div>
 
-          {/* Theme Settings */}
-          <div className="glass-panel rounded-3xl p-6 space-y-4">
-            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-white/10 pb-3">
-              <Sun size={18} className="text-amber-500" />
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white">Appearance & Theme</h2>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 max-w-md">
-              <button
-                type="button"
-                onClick={() => setTheme("dark")}
-                className={`flex items-center gap-3 rounded-2xl border p-4 transition-all ${
-                  theme === "dark"
-                    ? "border-orange-500 bg-orange-500/10 text-white"
-                    : "border-slate-200 dark:border-white/10 text-slate-600 hover:bg-slate-100 dark:hover:bg-zinc-800"
-                }`}
-              >
-                <Moon size={22} className="text-orange-400" />
-                <div className="text-left">
-                  <h4 className="text-xs font-bold">Obsidian Dark</h4>
-                  <p className="text-[10px] text-slate-400">Black & Orange theme</p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setTheme("light")}
-                className={`flex items-center gap-3 rounded-2xl border p-4 transition-all ${
-                  theme === "light"
-                    ? "border-orange-500 bg-orange-500/10 text-slate-900"
-                    : "border-slate-200 dark:border-white/10 text-slate-600 hover:bg-slate-100 dark:hover:bg-zinc-800"
-                }`}
-              >
-                <Sun size={22} className="text-amber-500" />
-                <div className="text-left">
-                  <h4 className="text-xs font-bold">Porcelain Light</h4>
-                  <p className="text-[10px] text-slate-400">Clean white canvas</p>
-                </div>
-              </button>
-            </div>
-          </div>
 
           {/* Submit */}
           <div className="flex items-center gap-4">

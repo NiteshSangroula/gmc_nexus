@@ -10,7 +10,6 @@ import {
   Award,
   Coins,
   Settings,
-  HelpCircle,
   ArrowUpRight,
   X,
   Globe,
@@ -56,11 +55,6 @@ const menuItems = [
     title: "Settings",
     path: "/settings",
     icon: Settings,
-  },
-  {
-    title: "Help & Support",
-    path: "/support",
-    icon: HelpCircle,
   },
 ];
 
