@@ -40,7 +40,7 @@ The application provides a responsive dashboard with dedicated pages for uploads
 
 ###  Credit-Based AI Usage
 
-FlashMind includes a credit system that regulates AI flashcard generation while providing a scalable foundation for premium subscription features.
+FlashAI includes a credit system that regulates AI flashcard generation while providing a scalable foundation for premium subscription features.
 
 # Tech Stack
 
@@ -84,38 +84,44 @@ FlashMind includes a credit system that regulates AI flashcard generation while 
 # Project Structure
 
 The repository is organized into two independent applications: a React frontend and a Spring Boot backend. This separation keeps the user interface, business logic, and data management isolated, making the project easier to maintain and extend.
-
-```
-FlashMind/    
-│    
-├── frontend/                 \\\# React + Vite client application    
-│   ├── public/               \\\# Static assets    
-│   ├── src/    
-│   │   ├── assets/           \\\# Images and icons    
-│   │   ├── components/       \\\# Reusable UI components    
-│   │   ├── contexts/         \\\# Global React contexts    
-│   │   ├── layouts/          \\\# Shared layouts (Dashboard, Sidebar)    
-│   │   ├── pages/            \\\# Application pages    
-│   │   ├── routes/           \\\# Client-side routing    
-│   │   ├── services/         \\\# API communication layer    
-│   │   └── styles/           \\\# Global styles    
-│   │    
-│   └── package.json    
-│    
-├── backend/                  \\\# Spring Boot REST API    
-│   ├── src/    
-│   │   ├── controller/       \\\# API endpoints    
-│   │   ├── service/          \\\# Business logic    
-│   │   ├── repository/       \\\# Database access    
-│   │   ├── entity/           \\\# JPA entities    
-│   │   ├── dto/              \\\# Request/Response models    
-│   │   ├── security/         \\\# JWT authentication    
-│   │   └── config/           \\\# Application configuration    
-│   │    
-│   └── pom.xml    
-│    
-├── docker-compose.yml        \\\# PostgreSQL container    
-├── .env.example              \\\# Environment template    
+```text
+FlashAI/
+│
+├── frontend/                          # React + Vite frontend
+│   ├── public/                        # Static assets
+│   ├── src/
+│   │   ├── api/                       # Axios configuration & REST API modules
+│   │   │
+│   │   ├── assets/                    # Images, logos and static resources
+│   │   ├── components/                # Reusable UI components
+│   │   ├── context/                   # Global React contexts (Auth, Theme)
+│   │   ├── layouts/                   # Shared layouts (Dashboard, Auth)
+│   │   ├── pages/                     # Individual application pages
+│   │   ├── routes/                    # React Router & protected routes
+│   │   ├── styles/                    # Global CSS & animations
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   │
+│   └── package.json
+│
+├── backend/                           # Spring Boot backend
+│   ├── src/main/java/com/nexus/backend/
+│   │   ├── config/                    # Security & application configuration
+│   │   ├── controller/                # REST API endpoints
+│   │   ├── dto/                       # Request & response models
+│   │   ├── entity/                    # JPA entities
+│   │   ├── exception/                 # Global exception handling
+│   │   ├── repository/                # Database repositories
+│   │   ├── security/                  # JWT authentication & authorization
+│   │   ├── service/                   # Business logic & AI integration
+│   │   ├── util/                      # Helper utilities
+│   │   └── BackendApplication.java
+│   │
+│   ├── pom.xml
+│   └── Dockerfile
+│
+├── docker-compose.yml                 # Docker services configuration
+├── .env.example                       # Environment variable template
 └── README.md
 ```
 
