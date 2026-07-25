@@ -5,11 +5,14 @@ import com.nexus.backend.dto.response.ApiResponse;
 import com.nexus.backend.dto.response.DeckInteractionResponse;
 import com.nexus.backend.entity.DeckReaction;
 import com.nexus.backend.entity.DeckReply;
+import com.nexus.backend.entity.FlashCard;
 import com.nexus.backend.repository.DeckReactionRepository;
 import com.nexus.backend.repository.DeckReplyRepository;
 import com.nexus.backend.repository.UserRepository;
+import com.nexus.backend.repository.FlashCardRepository;
 import com.nexus.backend.entity.User;
 import com.nexus.backend.exception.ResourceNotFoundException;
+import com.nexus.backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -28,6 +31,8 @@ public class DeckInteractionController {
     private final DeckReactionRepository reactionRepository;
     private final DeckReplyRepository replyRepository;
     private final UserRepository userRepository;
+    private final FlashCardRepository flashCardRepository;
+    private final NotificationService notificationService;
 
     @GetMapping("/{deckId}/interactions")
     public ResponseEntity<ApiResponse<DeckInteractionResponse>> getInteractions(
@@ -119,6 +124,23 @@ public class DeckInteractionController {
                 .build();
         
         DeckReply savedReply = replyRepository.save(reply);
+
+        // Notify the owner of the deck if they are not the replier
+        List<FlashCard> cards = flashCardRepository.findByDeckId(deckId);
+        if (cards != null && !cards.isEmpty()) {
+            FlashCard firstCard = cards.get(0);
+            Long ownerId = firstCard.getUser().getId();
+            if (!ownerId.equals(user.getId())) {
+                String deckName = firstCard.getDeckTitle() != null ? firstCard.getDeckTitle() : "Shared Deck";
+                String replierName = user.getUsername() != null && !user.getUsername().isBlank() ? user.getUsername() : user.getEmail().split("@")[0];
+                notificationService.createNotification(
+                        ownerId,
+                        "New Forum Reply",
+                        replierName + " replied to your deck '" + deckName + "': \"" + reply.getMessage() + "\""
+                );
+            }
+        }
+
         return ResponseEntity.ok(ApiResponse.success(savedReply, "Reply posted successfully"));
     }
 }

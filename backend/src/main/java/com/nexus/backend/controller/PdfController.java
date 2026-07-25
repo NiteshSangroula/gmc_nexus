@@ -6,19 +6,18 @@ import com.nexus.backend.entity.PdfDocument;
 import com.nexus.backend.entity.User;
 import com.nexus.backend.repository.PdfDocumentRepository;
 import com.nexus.backend.repository.UserRepository;
+import com.nexus.backend.repository.FlashCardRepository;
 import com.nexus.backend.service.PdfService;
+import com.nexus.backend.exception.ResourceNotFoundException;
+import com.nexus.backend.exception.UnauthorizedAccessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
-import org.springframework.web.bind.annotation.GetMapping;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,6 +28,7 @@ public class PdfController {
     private final PdfService pdfService;
     private final PdfDocumentRepository pdfDocumentRepository;
     private final UserRepository userRepository;
+    private final FlashCardRepository flashCardRepository;
 
     @PostMapping("/upload")
     public ResponseEntity<ApiResponse<PdfDocumentResponse>> uploadPdf(
@@ -84,5 +84,29 @@ public class PdfController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(ApiResponse.success(responseData, "PDF list retrieved successfully."));
+    }
+
+    @DeleteMapping("/{id}")
+    @org.springframework.transaction.annotation.Transactional
+    public ResponseEntity<ApiResponse<Void>> deletePdf(
+            @PathVariable Long id,
+            Authentication auth) {
+        User user = userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Authenticated User not found"));
+
+        PdfDocument doc = pdfDocumentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("PDF not found"));
+
+        if (!doc.getUser().getId().equals(user.getId())) {
+            throw new UnauthorizedAccessException("You do not own this PDF");
+        }
+
+        // Purge associated flashcards
+        flashCardRepository.deleteByUserAndDeckTitle(user, doc.getFilename());
+
+        // Delete document from DB
+        pdfDocumentRepository.delete(doc);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "PDF and associated decks deleted successfully"));
     }
 }
