@@ -30,10 +30,11 @@ const PublicDecks = () => {
         
         const decksMap = {};
         cards.forEach((card) => {
+          if (!card.deckId) return;
           if (!decksMap[card.deckId]) {
             decksMap[card.deckId] = {
               id: card.deckId,
-              title: card.deckTitle,
+              title: card.deckTitle || "Untitled Deck",
               cardsCount: 0,
             };
           }

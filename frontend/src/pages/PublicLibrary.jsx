@@ -1,6 +1,23 @@
 import { useState, useEffect } from "react";
 import MainLayout from "../layouts/MainLayout";
-import { Library, Search, Layers, RotateCw, ChevronLeft, ChevronRight, CheckCircle2, X, Trash2, Globe, User } from "lucide-react";
+import {
+  Library,
+  Search,
+  Layers,
+  RotateCw,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle2,
+  X,
+  Trash2,
+  Globe,
+  User,
+  ThumbsUp,
+  ThumbsDown,
+  MessageSquare,
+  Send,
+  Calendar,
+} from "lucide-react";
 import flashcardApi from "../api/flashcardApi";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-hot-toast";
@@ -14,19 +31,34 @@ const PublicLibraryPage = () => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Reaction & forum replies states
+  const [activeTab, setActiveTab] = useState("practice"); // "practice" or "forum"
+  const [reactions, setReactions] = useState({ likes: 0, dislikes: 0, userReaction: "NONE" });
+  const [replies, setReplies] = useState([]);
+  const [newReplyMessage, setNewReplyMessage] = useState("");
+  const [loadingReplies, setLoadingReplies] = useState(false);
+  const [postingReply, setPostingReply] = useState(false);
+
   const fetchDecks = async () => {
     try {
       setIsLoading(true);
+      console.log("[🌐 PublicLibraryPage] Fetching public flashcards...");
       const response = await flashcardApi.getPublicFlashcards(0, 500);
+      console.log("[🌐 PublicLibraryPage] Raw API response payload:", response);
+      
       const cards = response.data?.content || [];
+      console.log("[🌐 PublicLibraryPage] Loaded cards content array length:", cards.length);
       
       const decksMap = {};
       cards.forEach((card) => {
+        if (!card.deckId) return; // Skip invalid cards
+        
         if (!decksMap[card.deckId]) {
-          const isAi = card.deckTitle?.toLowerCase().endsWith(".pdf");
+          const title = card.deckTitle || "Untitled Deck";
+          const isAi = title.toLowerCase().endsWith(".pdf");
           decksMap[card.deckId] = {
             id: card.deckId,
-            title: card.deckTitle,
+            title: title,
             category: isAi ? "AI Generated" : "Custom Deck",
             ownerId: card.ownerId,
             cards: [],
@@ -34,12 +66,14 @@ const PublicLibraryPage = () => {
         }
         decksMap[card.deckId].cards.push({
           id: card.id,
-          q: card.question,
-          a: card.answer,
+          q: card.question || "",
+          a: card.answer || "",
         });
       });
       
-      setDecks(Object.values(decksMap));
+      const decksList = Object.values(decksMap);
+      console.log("[🌐 PublicLibraryPage] Structured decks list count:", decksList.length);
+      setDecks(decksList);
     } catch (error) {
       toast.error("Failed to load public library.");
       console.error("Public Library fetch error:", error);
@@ -52,24 +86,49 @@ const PublicLibraryPage = () => {
     fetchDecks();
   }, []);
 
-  const filteredDecks = decks.filter((deck) =>
-    deck.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Safe crash-proof search filtering
+  const filteredDecks = decks.filter((deck) => {
+    const query = searchQuery.toLowerCase();
+    const titleMatch = deck.title?.toLowerCase().includes(query) || false;
+    const catMatch = deck.category?.toLowerCase().includes(query) || false;
+    const cardsMatch = deck.cards?.some(
+      (card) =>
+        card.q?.toLowerCase().includes(query) ||
+        card.a?.toLowerCase().includes(query)
+    ) || false;
+    return titleMatch || catMatch || cardsMatch;
+  });
 
-  const openDeckModal = (deck) => {
+  const openDeckModal = async (deck) => {
     setSelectedDeck(deck);
     setCurrentCardIndex(0);
     setIsFlipped(false);
+    setActiveTab("practice");
+    setNewReplyMessage("");
+    
+    try {
+      setLoadingReplies(true);
+      const [reactionRes, repliesRes] = await Promise.all([
+        flashcardApi.getDeckInteractions(deck.id),
+        flashcardApi.getDeckReplies(deck.id)
+      ]);
+      setReactions(reactionRes.data || { likes: 0, dislikes: 0, userReaction: "NONE" });
+      setReplies(repliesRes.data || []);
+    } catch (err) {
+      console.error("Failed to fetch deck reactions/comments:", err);
+    } finally {
+      setLoadingReplies(false);
+    }
   };
 
   const handleNextCard = () => {
-    if (!selectedDeck) return;
+    if (!selectedDeck || !selectedDeck.cards.length) return;
     setIsFlipped(false);
     setCurrentCardIndex((prev) => (prev + 1) % selectedDeck.cards.length);
   };
 
   const handlePrevCard = () => {
-    if (!selectedDeck) return;
+    if (!selectedDeck || !selectedDeck.cards.length) return;
     setIsFlipped(false);
     setCurrentCardIndex((prev) => (prev - 1 + selectedDeck.cards.length) % selectedDeck.cards.length);
   };
@@ -89,6 +148,35 @@ const PublicLibraryPage = () => {
     } catch (error) {
       toast.error("Failed to delete deck.");
       console.error("Delete deck error:", error);
+    }
+  };
+
+  const handleReaction = async (isLike) => {
+    try {
+      const res = await flashcardApi.reactToDeck(selectedDeck.id, isLike);
+      setReactions(res.data || { likes: 0, dislikes: 0, userReaction: "NONE" });
+      toast.success(isLike ? "Deck liked!" : "Deck disliked!");
+    } catch (error) {
+      toast.error("Failed to register reaction.");
+      console.error("Reaction register error:", error);
+    }
+  };
+
+  const handlePostReply = async (e) => {
+    e.preventDefault();
+    if (!newReplyMessage.trim()) return;
+
+    try {
+      setPostingReply(true);
+      const res = await flashcardApi.addDeckReply(selectedDeck.id, newReplyMessage);
+      setReplies((prev) => [...prev, res.data]);
+      setNewReplyMessage("");
+      toast.success("Comment posted to forum!");
+    } catch (error) {
+      toast.error("Failed to post comment.");
+      console.error("Forum comment error:", error);
+    } finally {
+      setPostingReply(false);
     }
   };
 
@@ -112,7 +200,7 @@ const PublicLibraryPage = () => {
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search public decks..."
+              placeholder="Search specific topic, content, or title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 pl-10 pr-4 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-orange-500"
@@ -168,7 +256,7 @@ const PublicLibraryPage = () => {
 
                   <div className="mt-6 flex items-center justify-between border-t border-slate-100 dark:border-white/10 pt-4">
                     <span className="text-xs font-bold text-orange-500 group-hover:underline">
-                      Study Deck →
+                      Study Deck &amp; Forum →
                     </span>
                     {isOwner ? (
                       <button
@@ -190,10 +278,10 @@ const PublicLibraryPage = () => {
           </div>
         )}
 
-        {/* 3D Interactive Flip Card Modal */}
+        {/* 3D Interactive Practice + Forum Forum Modal */}
         {selectedDeck && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md animate-in fade-in">
-            <div className="relative w-full max-w-2xl rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#121218] p-6 shadow-2xl">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md overflow-y-auto animate-in fade-in">
+            <div className="relative w-full max-w-2xl rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#121218] p-6 shadow-2xl my-8">
               {/* Header */}
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
                 <div>
@@ -201,7 +289,7 @@ const PublicLibraryPage = () => {
                     {selectedDeck.title}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Card {currentCardIndex + 1} of {selectedDeck.cards.length}
+                    Card {selectedDeck.cards.length > 0 ? currentCardIndex + 1 : 0} of {selectedDeck.cards.length}
                   </p>
                 </div>
                 <button
@@ -212,87 +300,219 @@ const PublicLibraryPage = () => {
                 </button>
               </div>
 
-              {/* 3D Flip Card Container */}
-              <div className="my-8 perspective-1000">
-                <div
-                  onClick={() => setIsFlipped(!isFlipped)}
-                  className={`relative min-h-[260px] w-full cursor-pointer rounded-3xl p-8 border border-orange-500/30 shadow-2xl transition-transform duration-500 transform-style-3d ${
-                    isFlipped ? "rotate-y-180 bg-gradient-to-br from-amber-600 via-orange-600 to-rose-700 text-white" : "bg-gradient-to-br from-zinc-900 via-zinc-900 to-black text-white"
-                  }`}
-                >
-                  {/* Front Side */}
-                  <div className={`flex flex-col justify-between h-full space-y-6 ${isFlipped ? "hidden" : "block"}`}>
-                    <div className="flex items-center justify-between">
-                      <span className="rounded-full bg-orange-500/20 px-3 py-1 text-[10px] font-extrabold uppercase text-orange-400 tracking-wider">
-                        Question Side
-                      </span>
-                      <span className="flex items-center gap-1 text-[11px] text-slate-400">
-                        <RotateCw size={12} /> Click to flip
-                      </span>
-                    </div>
+              {/* Sub-Header Tab Switcher + Reactions */}
+              <div className="mt-4 flex flex-col gap-3 border-b border-slate-100 dark:border-white/10 pb-3 sm:flex-row sm:items-center sm:justify-between">
+                {/* Tabs */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setActiveTab("practice")}
+                    className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+                      activeTab === "practice"
+                        ? "bg-orange-500 text-white shadow-xs"
+                        : "bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-800"
+                    }`}
+                  >
+                    Flashcards Practice ({selectedDeck.cards.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("forum")}
+                    className={`rounded-xl px-4 py-2 text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      activeTab === "forum"
+                        ? "bg-orange-500 text-white shadow-xs"
+                        : "bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-800"
+                    }`}
+                  >
+                    <MessageSquare size={14} />
+                    Forum Discussion ({replies.length})
+                  </button>
+                </div>
 
-                    <div className="my-auto text-center">
-                      <p className="text-lg font-bold sm:text-xl text-white leading-relaxed">
-                        {selectedDeck.cards[currentCardIndex]?.q}
-                      </p>
-                    </div>
-
-                    <div className="text-center text-[11px] text-slate-400">
-                      Tap card anywhere to reveal answer
-                    </div>
-                  </div>
-
-                  {/* Back Side (Flipped) */}
-                  <div className={`flex flex-col justify-between h-full space-y-6 rotate-y-180 ${isFlipped ? "block" : "hidden"}`}>
-                    <div className="flex items-center justify-between">
-                      <span className="rounded-full bg-white/20 px-3 py-1 text-[10px] font-extrabold uppercase text-white tracking-wider">
-                        Answer Side
-                      </span>
-                      <span className="flex items-center gap-1 text-[11px] text-amber-200">
-                        <RotateCw size={12} /> Flipped
-                      </span>
-                    </div>
-
-                    <div className="my-auto text-center">
-                      <p className="text-base font-semibold sm:text-lg text-white leading-relaxed">
-                        {selectedDeck.cards[currentCardIndex]?.a}
-                      </p>
-                    </div>
-
-                    <div className="flex justify-center gap-4 pt-2">
-                      <span className="flex items-center gap-1 rounded-xl bg-emerald-500/30 border border-emerald-400/40 px-4 py-1.5 text-xs font-bold text-emerald-100">
-                        <CheckCircle2 size={14} /> Tap to flip back
-                      </span>
-                    </div>
-                  </div>
+                {/* Reaction Actions */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleReaction(true)}
+                    className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
+                      reactions.userReaction === "LIKE"
+                        ? "bg-emerald-500/20 border-emerald-500 text-emerald-500"
+                        : "border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-900"
+                    }`}
+                    title="Like Deck"
+                  >
+                    <ThumbsUp size={14} />
+                    <span>{reactions.likes}</span>
+                  </button>
+                  <button
+                    onClick={() => handleReaction(false)}
+                    className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
+                      reactions.userReaction === "DISLIKE"
+                        ? "bg-rose-500/20 border-rose-500 text-rose-500"
+                        : "border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-900"
+                    }`}
+                    title="Dislike Deck"
+                  >
+                    <ThumbsDown size={14} />
+                    <span>{reactions.dislikes}</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Controls Footer */}
-              <div className="flex items-center justify-between border-t border-slate-100 dark:border-white/10 pt-4">
-                <button
-                  onClick={handlePrevCard}
-                  className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-white/10 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800"
-                >
-                  <ChevronLeft size={16} />
-                  <span>Previous</span>
-                </button>
+              {/* Tab Content 1: Practice */}
+              {activeTab === "practice" && (
+                <div>
+                  <div className="my-8 perspective-1000">
+                    {selectedDeck.cards.length === 0 ? (
+                      <div className="min-h-[260px] flex items-center justify-center text-xs text-slate-400">
+                        This deck has no cards.
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => setIsFlipped(!isFlipped)}
+                        className={`relative min-h-[260px] w-full cursor-pointer rounded-3xl p-8 border border-orange-500/30 shadow-2xl transition-transform duration-500 transform-style-3d ${
+                          isFlipped
+                            ? "rotate-y-180 bg-gradient-to-br from-amber-600 via-orange-600 to-rose-700 text-white"
+                            : "bg-gradient-to-br from-zinc-900 via-zinc-900 to-black text-white"
+                        }`}
+                      >
+                        {/* Front Side */}
+                        <div className={`flex flex-col justify-between h-full space-y-6 ${isFlipped ? "hidden" : "block"}`}>
+                          <div className="flex items-center justify-between">
+                            <span className="rounded-full bg-orange-500/20 px-3 py-1 text-[10px] font-extrabold uppercase text-orange-400 tracking-wider">
+                              Question Side
+                            </span>
+                            <span className="flex items-center gap-1 text-[11px] text-slate-400">
+                              <RotateCw size={12} /> Click to flip
+                            </span>
+                          </div>
 
-                <button
-                  onClick={() => setIsFlipped(!isFlipped)}
-                  className="flex items-center gap-2 rounded-xl bg-orange-500/10 border border-orange-500/30 px-4 py-2 text-xs font-bold text-orange-500 hover:bg-orange-500/20"
-                >
-                  <RotateCw size={14} /> Flip Card
-                </button>
+                          <div className="my-auto text-center">
+                            <p className="text-lg font-bold sm:text-xl text-white leading-relaxed">
+                              {selectedDeck.cards[currentCardIndex]?.q}
+                            </p>
+                          </div>
 
-                <button
-                  onClick={handleNextCard}
-                  className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2 text-xs font-bold text-white shadow-md hover:scale-105"
-                >
-                  <span>Next Card</span>
-                  <ChevronRight size={16} />
-                </button>
-              </div>
+                          <div className="text-center text-[11px] text-slate-400">
+                            Tap card anywhere to reveal answer
+                          </div>
+                        </div>
+
+                        {/* Back Side (Flipped) */}
+                        <div className={`flex flex-col justify-between h-full space-y-6 rotate-y-180 ${isFlipped ? "block" : "hidden"}`}>
+                          <div className="flex items-center justify-between">
+                            <span className="rounded-full bg-white/20 px-3 py-1 text-[10px] font-extrabold uppercase text-white tracking-wider">
+                              Answer Side
+                            </span>
+                            <span className="flex items-center gap-1 text-[11px] text-amber-200">
+                              <RotateCw size={12} /> Flipped
+                            </span>
+                          </div>
+
+                          <div className="my-auto text-center">
+                            <p className="text-base font-semibold sm:text-lg text-white leading-relaxed">
+                              {selectedDeck.cards[currentCardIndex]?.a}
+                            </p>
+                          </div>
+
+                          <div className="flex justify-center gap-4 pt-2">
+                            <span className="flex items-center gap-1 rounded-xl bg-emerald-500/30 border border-emerald-400/40 px-4 py-1.5 text-xs font-bold text-emerald-100">
+                              <CheckCircle2 size={14} /> Tap to flip back
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Controls Footer */}
+                  {selectedDeck.cards.length > 0 && (
+                    <div className="flex items-center justify-between border-t border-slate-100 dark:border-white/10 pt-4">
+                      <button
+                        onClick={handlePrevCard}
+                        className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-white/10 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800"
+                      >
+                        <ChevronLeft size={16} />
+                        <span>Previous</span>
+                      </button>
+
+                      <button
+                        onClick={() => setIsFlipped(!isFlipped)}
+                        className="flex items-center gap-2 rounded-xl bg-orange-500/10 border border-orange-500/30 px-4 py-2 text-xs font-bold text-orange-500 hover:bg-orange-500/20"
+                      >
+                        <RotateCw size={14} /> Flip Card
+                      </button>
+
+                      <button
+                        onClick={handleNextCard}
+                        className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2 text-xs font-bold text-white shadow-md hover:scale-105"
+                      >
+                        <span>Next Card</span>
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab Content 2: Forum Discussions */}
+              {activeTab === "forum" && (
+                <div className="space-y-4 my-6">
+                  {/* Replies List */}
+                  <div className="max-h-[300px] overflow-y-auto space-y-3 pr-2 scrollbar-thin">
+                    {loadingReplies ? (
+                      <div className="flex h-32 items-center justify-center text-slate-400 text-xs">
+                        Loading comments...
+                      </div>
+                    ) : replies.length === 0 ? (
+                      <div className="py-12 text-center text-xs text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-zinc-900/20 rounded-2xl border border-slate-200/50 dark:border-white/5">
+                        No discussion topics yet on this deck. Write the first comment below!
+                      </div>
+                    ) : (
+                      replies.map((reply) => (
+                        <div
+                          key={reply.id}
+                          className="rounded-2xl border border-slate-200/60 dark:border-white/5 bg-slate-50/50 dark:bg-zinc-900/40 p-3.5 space-y-1.5 text-xs"
+                        >
+                          <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400">
+                            <span className="text-orange-500 dark:text-orange-400 flex items-center gap-1">
+                              <User size={12} /> {reply.username}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Calendar size={11} />
+                              {new Date(reply.createdAt).toLocaleDateString()} at{" "}
+                              {new Date(reply.createdAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                          <p className="text-slate-800 dark:text-slate-200 leading-relaxed break-words font-medium">
+                            {reply.message}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Add Reply Form */}
+                  <form onSubmit={handlePostReply} className="flex gap-2 border-t border-slate-100 dark:border-white/10 pt-4">
+                    <input
+                      type="text"
+                      placeholder="Ask a question or post a feedback message..."
+                      value={newReplyMessage}
+                      onChange={(e) => setNewReplyMessage(e.target.value)}
+                      disabled={postingReply}
+                      className="flex-1 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 px-4 py-2.5 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 disabled:opacity-50"
+                    />
+                    <button
+                      type="submit"
+                      disabled={postingReply || !newReplyMessage.trim()}
+                      className="flex items-center gap-1.5 rounded-xl bg-orange-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-orange-500 transition-all disabled:opacity-50"
+                    >
+                      <span>Reply</span>
+                      <Send size={13} />
+                    </button>
+                  </form>
+                </div>
+              )}
             </div>
           </div>
         )}

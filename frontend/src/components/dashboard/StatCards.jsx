@@ -1,64 +1,122 @@
-import { Coins, FileText, Folder, Calendar, Clock } from "lucide-react";
-
-const stats = [
-  {
-    id: "credits",
-    title: "Daily Conversion Credits",
-    value: "23",
-    total: "/ 50",
-    footer: "Resets in 10h 24m",
-    icon: Coins,
-    iconBg: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
-    badge: Clock,
-  },
-  {
-    id: "flashcards",
-    title: "Active Flashcards",
-    value: "532",
-    subtext: "Total Created Cards",
-    icon: FileText,
-    iconBg: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
-  },
-  {
-    id: "decks",
-    title: "Subject Decks",
-    value: "12",
-    subtext: "Organized Folders",
-    icon: Folder,
-    iconBg: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  },
-  {
-    id: "streak",
-    title: "Study Streak",
-    value: "7",
-    subtext: "Consecutive Days",
-    icon: Calendar,
-    iconBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-  },
-];
+import { useEffect, useState } from "react";
+import { Coins, FileText, Folder, Calendar, Clock, Loader2 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import flashcardApi from "../../api/flashcardApi";
 
 const StatCards = () => {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [flashcardCount, setFlashcardCount] = useState(0);
+  const [deckCount, setDeckCount] = useState(0);
+  const [streak, setStreak] = useState(1);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await flashcardApi.getFlashcards(0, 1000);
+        const cards = response.data?.content || [];
+        setFlashcardCount(cards.length);
+        
+        const uniqueDecks = new Set(cards.map(c => c.deckId));
+        setDeckCount(uniqueDecks.size);
+      } catch (err) {
+        console.error("Failed to fetch stat cards data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Calculate/Retrieve Study Streak from localStorage
+    const todayStr = new Date().toISOString().split("T")[0];
+    const savedStreak = localStorage.getItem("study-streak-data");
+    if (savedStreak) {
+      try {
+        const data = JSON.parse(savedStreak);
+        const lastDate = new Date(data.lastDate);
+        const today = new Date(todayStr);
+        
+        // Calculate difference in days
+        const diffTime = Math.abs(today - lastDate);
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) {
+          // Yesterday was the last login, increment streak!
+          const newCount = data.count + 1;
+          setStreak(newCount);
+          localStorage.setItem("study-streak-data", JSON.stringify({ lastDate: todayStr, count: newCount }));
+        } else if (diffDays === 0) {
+          // Logged in today already, keep same count
+          setStreak(data.count);
+        } else {
+          // Missed days, reset to 1
+          setStreak(1);
+          localStorage.setItem("study-streak-data", JSON.stringify({ lastDate: todayStr, count: 1 }));
+        }
+      } catch {
+        setStreak(1);
+        localStorage.setItem("study-streak-data", JSON.stringify({ lastDate: todayStr, count: 1 }));
+      }
+    } else {
+      setStreak(1);
+      localStorage.setItem("study-streak-data", JSON.stringify({ lastDate: todayStr, count: 1 }));
+    }
+
+    fetchStats();
+  }, []);
+
+  const isPremium = user?.plan === "PREMIUM";
+  const creditsLeft = user?.credits !== undefined ? user.credits : 0;
+
+  const stats = [
+    {
+      id: "credits",
+      title: "Daily Conversion Credits",
+      value: isPremium ? "Unlimited" : creditsLeft.toString(),
+      total: isPremium ? "" : "/ 3",
+      subtext: isPremium ? "Premium Account Access" : "Resets daily",
+      icon: Coins,
+      iconBg: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+    },
+    {
+      id: "flashcards",
+      title: "Active Flashcards",
+      value: loading ? "..." : flashcardCount.toString(),
+      subtext: "Total Created Cards",
+      icon: FileText,
+      iconBg: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
+    },
+    {
+      id: "decks",
+      title: "Subject Decks",
+      value: loading ? "..." : deckCount.toString(),
+      subtext: "Organized Collections",
+      icon: Folder,
+      iconBg: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+    },
+    {
+      id: "streak",
+      title: "Study Streak",
+      value: streak.toString(),
+      subtext: "Consecutive Days",
+      icon: Calendar,
+      iconBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+    },
+  ];
+
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => {
         const Icon = stat.icon;
-        const BadgeIcon = stat.badge;
 
         return (
           <div
             key={stat.id}
-            className="human-card human-card-hover relative overflow-hidden rounded-2xl p-5"
+            className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#12131b] p-5 shadow-xs transition-all hover:scale-[1.01]"
           >
             <div className="flex items-center justify-between">
               <div className={`flex h-10 w-10 items-center justify-center rounded-xl border ${stat.iconBg}`}>
                 <Icon size={19} />
               </div>
-              {stat.footer && (
-                <div className="flex items-center gap-1 rounded-full bg-slate-100 dark:bg-zinc-800/80 px-2.5 py-1 text-[11px] font-semibold text-slate-600 dark:text-slate-400 border border-slate-200/60 dark:border-white/5">
-                  {BadgeIcon && <BadgeIcon size={12} className="text-amber-500" />}
-                  <span>{stat.footer}</span>
-                </div>
-              )}
             </div>
 
             <div className="mt-4">

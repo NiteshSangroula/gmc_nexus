@@ -40,28 +40,11 @@ export const AuthProvider = ({ children }) => {
         } catch {
           // If offline or error, maintain saved user if available
           if (!savedUser) {
-            setUser({
-              id: 1,
-              email: "student@gmc.edu",
-              username: "Student User",
-              plan: "FREE",
-              credits: 50,
-            });
+            logout();
           }
         }
       } else {
-        // Mock default active student user for immediate demo access
-        const defaultUser = {
-          id: 1,
-          email: "alex.student@gmc.edu",
-          username: "Alex Rivera",
-          plan: "PRO",
-          credits: 45,
-        };
-        setUser(defaultUser);
-        setToken("demo-jwt-token-nexus-2026");
-        localStorage.setItem("token", "demo-jwt-token-nexus-2026");
-        localStorage.setItem("user", JSON.stringify(defaultUser));
+        logout();
       }
       setIsLoading(false);
     };
@@ -80,78 +63,51 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await authApi.login(email, password);
-      const { token: jwtToken, email: userEmail } = response.data || {};
-      
-      const loggedUser = {
-        id: Date.now(),
-        email: userEmail || email,
-        username: (userEmail || email).split("@")[0],
-        plan: "PRO",
-        credits: 50,
-      };
+      const jwtToken = response.data?.token;
 
       if (jwtToken) {
         setToken(jwtToken);
         localStorage.setItem("token", jwtToken);
       }
-      setUser(loggedUser);
-      localStorage.setItem("user", JSON.stringify(loggedUser));
+
+      // Fetch the actual database profile
+      const profileResponse = await authApi.getCurrentUser();
+      const dbUser = profileResponse.data;
+
+      setUser(dbUser);
+      localStorage.setItem("user", JSON.stringify(dbUser));
       setIsLoading(false);
-      return { success: true, user: loggedUser };
-    } catch {
+      return { success: true, user: dbUser };
+    } catch (error) {
       setIsLoading(false);
-      // Dev fallback for demo
-      const fallbackUser = {
-        id: 1,
-        email: email,
-        username: email.split("@")[0],
-        plan: "PRO",
-        credits: 50,
-      };
-      setToken("demo-jwt-token");
-      setUser(fallbackUser);
-      localStorage.setItem("token", "demo-jwt-token");
-      localStorage.setItem("user", JSON.stringify(fallbackUser));
-      return { success: true, user: fallbackUser };
+      console.error("Login failed:", error);
+      throw error;
     }
   };
 
-  const register = async (email, password, username) => {
+  const register = async (email, password, username, otp) => {
     setIsLoading(true);
     try {
-      const response = await authApi.register(email, password, username);
-      const { token: jwtToken } = response.data || {};
-
-      const newUser = {
-        id: Date.now(),
-        email,
-        username: username || email.split("@")[0],
-        plan: "FREE",
-        credits: 50,
-      };
+      const response = await authApi.register(email, password, username, otp);
+      const jwtToken = response.data?.token;
 
       if (jwtToken) {
         setToken(jwtToken);
         localStorage.setItem("token", jwtToken);
       }
+
+      // Fetch the actual database profile
+      const profileResponse = await authApi.getCurrentUser();
+      const newUser = profileResponse.data;
+
       setUser(newUser);
       localStorage.setItem("user", JSON.stringify(newUser));
       setIsLoading(false);
       return { success: true, user: newUser };
-    } catch {
+    } catch (error) {
       setIsLoading(false);
-      const fallbackUser = {
-        id: Date.now(),
-        email,
-        username: username || email.split("@")[0],
-        plan: "FREE",
-        credits: 50,
-      };
-      setToken("demo-jwt-token");
-      setUser(fallbackUser);
-      localStorage.setItem("token", "demo-jwt-token");
-      localStorage.setItem("user", JSON.stringify(fallbackUser));
-      return { success: true, user: fallbackUser };
+      console.error("Registration failed:", error);
+      throw error;
     }
   };
 
@@ -162,8 +118,8 @@ export const AuthProvider = ({ children }) => {
         setUser(res.data);
         localStorage.setItem("user", JSON.stringify(res.data));
       }
-    } catch {
-      // Ignore errors on refresh
+    } catch (error) {
+      console.error("Failed to refresh user:", error);
     }
   };
 

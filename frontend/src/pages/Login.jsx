@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AuthLayout from "../layouts/AuthLayout";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, AlertCircle } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 const Login = () => {
@@ -44,19 +44,6 @@ const Login = () => {
     }
   };
 
-  const handleDemoLogin = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      await login("alex.student@gmc.edu", "demo123456");
-      toast.success("Signed in as Demo Student!");
-      navigate(from, { replace: true });
-    } catch {
-      toast.error("Failed demo login");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <AuthLayout
@@ -132,24 +119,6 @@ const Login = () => {
           )}
         </button>
 
-        <div className="relative my-6 text-center">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200 dark:border-white/10"></div>
-          </div>
-          <span className="relative bg-slate-50 dark:bg-[#0b0c10] px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-            OR DEMO ACCESS
-          </span>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleDemoLogin}
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-2 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 py-3 text-xs font-bold text-slate-800 dark:text-white transition-all hover:bg-slate-100 dark:hover:bg-zinc-800"
-        >
-          <Sparkles size={16} className="text-amber-500" />
-          <span>Quick Sign In as Demo Student</span>
-        </button>
 
         <p className="text-center text-xs font-medium text-slate-500 dark:text-slate-400 pt-2">
           Don&apos;t have an account?{" "}

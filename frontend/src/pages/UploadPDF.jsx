@@ -2,12 +2,15 @@ import { useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { UploadCloud, FileText, CheckCircle2, AlertCircle, ArrowRight, Sparkles, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import pdfApi from "../api/pdfApi";
+import { toast } from "react-hot-toast";
 
 const UploadPDF = () => {
   const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [progressText, setProgressText] = useState("Preparing document...");
 
   const handleFileDrop = (e) => {
     e.preventDefault();
@@ -16,27 +19,51 @@ const UploadPDF = () => {
       const file = files[0];
       if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
         setSelectedFile(file);
+      } else {
+        toast.error("Please drop a valid PDF document.");
       }
     }
   };
 
-  const startUpload = () => {
+  const startUpload = async () => {
     if (!selectedFile) return;
     setIsUploading(true);
-    let currentProgress = 0;
-    const interval = setInterval(() => {
-      currentProgress += 15;
-      if (currentProgress >= 100) {
-        setProgress(100);
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsUploading(false);
-          navigate("/flashcards");
-        }, 600);
-      } else {
-        setProgress(currentProgress);
-      }
-    }, 200);
+    setProgress(20);
+    setProgressText("Uploading PDF to workspace...");
+
+    // Smoothly simulate upload progress up to 80%
+    let progressInterval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev < 80) return prev + 10;
+        return prev;
+      });
+    }, 150);
+
+    try {
+      // 1. Upload PDF
+      const uploadRes = await pdfApi.uploadPdf(selectedFile);
+      const pdfId = uploadRes.data?.id;
+
+      clearInterval(progressInterval);
+      setProgress(100);
+      setProgressText("Uploaded successfully!");
+
+      toast.success("PDF uploaded successfully!");
+
+      setTimeout(() => {
+        setIsUploading(false);
+        navigate("/flashcards", { state: { selectedPdfId: pdfId } }); // Redirect with ID in state!
+      }, 600);
+
+    } catch (error) {
+      clearInterval(progressInterval);
+      setIsUploading(false);
+      setProgress(0);
+      
+      const errMsg = error.response?.data?.message || "Failed to upload PDF. Please check connection.";
+      toast.error(errMsg);
+      console.error("PDF upload error:", error);
+    }
   };
 
   return (
@@ -92,7 +119,7 @@ const UploadPDF = () => {
                     <FileText size={24} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-lg">
                       {selectedFile.name}
                     </h4>
                     <p className="text-xs text-slate-400 dark:text-slate-500">
@@ -115,8 +142,8 @@ const UploadPDF = () => {
               {isUploading && (
                 <div className="mt-6 space-y-2">
                   <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-orange-500 flex items-center gap-1.5">
-                      <Sparkles size={14} className="animate-spin" /> Extracting PDF content...
+                    <span className="text-orange-500 flex items-center gap-1.5 animate-pulse">
+                      <Sparkles size={14} className="animate-spin" /> {progressText}
                     </span>
                     <span className="text-slate-900 dark:text-white">{progress}%</span>
                   </div>
@@ -141,7 +168,7 @@ const UploadPDF = () => {
                     onClick={startUpload}
                     className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-orange-500/25 transition-all hover:scale-105"
                   >
-                    <span>Generate Flashcards</span>
+                    <span>Import PDF to Generator</span>
                     <ArrowRight size={16} />
                   </button>
                 </div>

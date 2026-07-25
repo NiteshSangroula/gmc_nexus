@@ -41,6 +41,27 @@ export const flashcardApi = {
     const response = await api.get(`/cards/public?page=${page}&size=${size}`);
     return response.data;
   },
+
+  // Reaction and replies endpoints for the forum
+  getDeckInteractions: async (deckId) => {
+    const response = await api.get(`/decks/${deckId}/interactions`);
+    return response.data;
+  },
+
+  reactToDeck: async (deckId, isLike) => {
+    const response = await api.post(`/decks/${deckId}/react?isLike=${isLike}`);
+    return response.data;
+  },
+
+  getDeckReplies: async (deckId) => {
+    const response = await api.get(`/decks/${deckId}/replies`);
+    return response.data;
+  },
+
+  addDeckReply: async (deckId, message) => {
+    const response = await api.post(`/decks/${deckId}/replies`, { message });
+    return response.data;
+  },
 };
 
 export default flashcardApi;
