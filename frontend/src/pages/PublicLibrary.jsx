@@ -43,12 +43,8 @@ const PublicLibraryPage = () => {
   const fetchDecks = async () => {
     try {
       setIsLoading(true);
-      console.log("[🌐 PublicLibraryPage] Fetching public flashcards...");
       const response = await flashcardApi.getPublicFlashcards(0, 500);
-      console.log("[🌐 PublicLibraryPage] Raw API response payload:", response);
-      
       const cards = response.data?.content || [];
-      console.log("[🌐 PublicLibraryPage] Loaded cards content array length:", cards.length);
       
       const decksMap = {};
       cards.forEach((card) => {
@@ -75,7 +71,6 @@ const PublicLibraryPage = () => {
       });
       
       const decksList = Object.values(decksMap);
-      console.log("[🌐 PublicLibraryPage] Structured decks list count:", decksList.length);
       setDecks(decksList);
     } catch (error) {
       toast.error("Failed to load public library.");

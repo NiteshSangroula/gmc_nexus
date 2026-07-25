@@ -85,7 +85,7 @@ const Sidebar = ({ isMobileOpen, closeMobileSidebar }) => {
             </div>
             <div>
               <h1 className="text-base font-bold tracking-tight text-slate-900 dark:text-white">
-                PDF to Flashcards
+                Flash AI
               </h1>
               <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                 Personal Study Workspace

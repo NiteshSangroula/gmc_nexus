@@ -80,6 +80,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
     }
 
+    @ExceptionHandler(InsufficientCreditException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInsufficientCredit(
+            InsufficientCreditException ex,
+            HttpServletRequest request) {
+        ApiResponse<Void> apiResponse = ApiResponse.error(
+                ex.getMessage(),
+                null,
+                request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
+    }
+
     @ExceptionHandler()
     public ResponseEntity<ApiResponse<Void>> handleGenericException(
             Exception ex,
