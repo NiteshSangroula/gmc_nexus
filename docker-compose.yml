@@ -32,6 +32,9 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      BREVO_API: ${BREVO_API}
+      BREVO_NAME: ${BREVO_NAME}
+      BREVO_EMAIL: ${BREVO_EMAIL}
     ports:
       - "8080:8080"
 
