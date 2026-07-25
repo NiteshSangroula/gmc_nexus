@@ -31,3 +31,10 @@ gemini:
   api:
     key: ${GEMINI_API_KEY:dummy-key-for-tests}
     url:  https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent
+
+brevo:
+  api:
+    key: ${BREVO_API:dummy-brevo-key}
+  from:
+    name: ${BREVO_NAME:Luxios}
+    email: ${BREVO_EMAIL:noreply.envy@luxiosnitro.com}

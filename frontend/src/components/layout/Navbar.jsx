@@ -75,18 +75,6 @@ const Navbar = ({ toggleMobileSidebar }) => {
       </div>
 
       <div className="flex items-center gap-3">
-        <button
-          onClick={toggleTheme}
-          className="group relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100/80 dark:bg-zinc-900 text-slate-700 dark:text-amber-400 transition-all hover:border-orange-500/50 hover:bg-slate-200/80 dark:hover:bg-zinc-800 shadow-xs"
-          title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
-        >
-          {theme === "dark" ? (
-            <Sun size={19} className="transition-transform duration-300 group-hover:rotate-45" />
-          ) : (
-            <Moon size={19} className="transition-transform duration-300 group-hover:-rotate-12 text-slate-700" />
-          )}
-        </button>
-
         <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}

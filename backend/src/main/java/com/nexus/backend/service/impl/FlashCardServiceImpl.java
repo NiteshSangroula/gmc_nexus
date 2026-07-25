@@ -181,13 +181,28 @@ public class FlashCardServiceImpl implements FlashCardService {
                 card.getDeckTitle(),
                 card.getQuestion(),
                 card.getAnswer(),
-                card.getCreatedAt());
+                card.getCreatedAt(),
+                card.getUser() != null ? card.getUser().getId() : null);
     }
 
     private List<FlashCardResponse> mapToResponses(List<FlashCard> flashCards) {
         return flashCards.stream()
                 .map(this::mapToResponse)
                 .toList();
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteDeck(Long userId, String deckId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        flashCardRepository.deleteByUserAndDeckId(user, deckId);
+    }
+
+    @Override
+    public Page<FlashCardResponse> getPublicFlashCards(Pageable pageable) {
+        return flashCardRepository.findAll(pageable)
+                .map(this::mapToResponse);
     }
 
 }

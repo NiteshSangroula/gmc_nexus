@@ -8,9 +8,10 @@ import Flashcards from "../pages/Flashcards";
 import LibraryPage from "../pages/Library";
 import HistoryPage from "../pages/History";
 import PremiumPage from "../pages/Premium";
-import CreditsPage from "../pages/Credits";
+
 import SettingsPage from "../pages/Settings";
 import SupportPage from "../pages/Support";
+import PublicLibraryPage from "../pages/PublicLibrary";
 
 const AppRoutes = () => {
   return (
@@ -21,6 +22,14 @@ const AppRoutes = () => {
         <Route path="/register" element={<Register />} />
 
         {/* Protected Dashboard Workspace Routes */}
+        <Route
+          path="/public-library"
+          element={
+            <ProtectedRoute>
+              <PublicLibraryPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/dashboard"
           element={
@@ -69,14 +78,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/credits"
-          element={
-            <ProtectedRoute>
-              <CreditsPage />
-            </ProtectedRoute>
-          }
-        />
+
         <Route
           path="/settings"
           element={

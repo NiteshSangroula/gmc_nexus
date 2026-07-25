@@ -1,14 +1,67 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { Sparkles, Sliders, Layers, Play, CheckCircle2, RefreshCw } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import pdfApi from "../api/pdfApi";
+import flashcardApi from "../api/flashcardApi";
+import { toast } from "react-hot-toast";
 
 const Flashcards = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  const [pdfs, setPdfs] = useState([]);
+  const [selectedPdfId, setSelectedPdfId] = useState(location.state?.selectedPdfId || "");
   const [cardCount, setCardCount] = useState(24);
   const [difficulty, setDifficulty] = useState("Intermediate");
   const [focusArea, setFocusArea] = useState("All Concepts");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoadingPdfs, setIsLoadingPdfs] = useState(true);
+
+  useEffect(() => {
+    const fetchPdfs = async () => {
+      try {
+        setIsLoadingPdfs(true);
+        const res = await pdfApi.getAllPdfs();
+        const pdfList = res.data || [];
+        setPdfs(pdfList);
+        
+        // Default to the PDF ID passed from the upload page state
+        if (location.state?.selectedPdfId) {
+          setSelectedPdfId(location.state.selectedPdfId.toString());
+        } else if (pdfList.length > 0) {
+          setSelectedPdfId(pdfList[0].id.toString());
+        }
+      } catch (err) {
+        console.error("Failed to load source documents:", err);
+        toast.error("Failed to load PDF documents list.");
+      } finally {
+        setIsLoadingPdfs(false);
+      }
+    };
+    fetchPdfs();
+  }, [location.state]);
+
+  const handleGenerate = async () => {
+    if (!selectedPdfId) {
+      toast.error("Please select a target source PDF document.");
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+      // Trigger backend AI card generation
+      await flashcardApi.generateFlashcards(Number(selectedPdfId), cardCount);
+      toast.success("Deck generated successfully!");
+      navigate("/library"); // Redirect to Personal Library to see new decks
+    } catch (error) {
+      console.error("Failed to generate deck:", error);
+      const errMsg = error.response?.data?.message || "Failed to generate flashcards. Please check credit balance.";
+      toast.error(errMsg);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const samplePreviewCards = [
     {
@@ -25,14 +78,6 @@ const Flashcards = () => {
     },
   ];
 
-  const handleGenerate = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
-      navigate("/library");
-    }, 1200);
-  };
-
   return (
     <MainLayout>
       <div className="space-y-6 pb-12">
@@ -48,8 +93,8 @@ const Flashcards = () => {
 
           <button
             onClick={handleGenerate}
-            disabled={isGenerating}
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 px-6 py-3 text-xs font-bold text-white shadow-lg shadow-orange-500/25 transition-all hover:scale-105"
+            disabled={isGenerating || !selectedPdfId}
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 px-6 py-3 text-xs font-bold text-white shadow-lg shadow-orange-500/25 transition-all hover:scale-105 disabled:opacity-50"
           >
             {isGenerating ? (
               <>
@@ -78,11 +123,30 @@ const Flashcards = () => {
               <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                 Target Source Document
               </label>
-              <select className="mt-1.5 w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-900 px-3.5 py-2.5 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500">
-                <option>Machine Learning Basics.pdf (2.4 MB)</option>
-                <option>Data Structures Notes.pdf (1.8 MB)</option>
-                <option>Operating Systems.pdf (3.1 MB)</option>
-              </select>
+              {isLoadingPdfs ? (
+                <div className="mt-1.5 flex items-center gap-2 text-xs text-slate-400">
+                  <RefreshCw size={14} className="animate-spin" /> Loading documents...
+                </div>
+              ) : pdfs.length === 0 ? (
+                <div className="mt-1.5 text-xs text-slate-500 bg-slate-50 dark:bg-zinc-950 p-3.5 rounded-xl border border-slate-200 dark:border-white/5">
+                  No source documents found.{" "}
+                  <Link to="/upload" className="text-orange-500 font-bold hover:underline">
+                    Upload a PDF document first
+                  </Link>
+                </div>
+              ) : (
+                <select
+                  value={selectedPdfId}
+                  onChange={(e) => setSelectedPdfId(e.target.value)}
+                  className="mt-1.5 w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-900 px-3.5 py-2.5 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500"
+                >
+                  {pdfs.map((pdf) => (
+                    <option key={pdf.id} value={pdf.id.toString()}>
+                      {pdf.filename}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             {/* Card Count Slider */}
@@ -186,10 +250,15 @@ const Flashcards = () => {
             <div className="pt-2">
               <button
                 onClick={handleGenerate}
-                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-orange-500/25 transition-all hover:scale-[1.01]"
+                disabled={isGenerating || !selectedPdfId}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-orange-500/25 transition-all hover:scale-[1.01] disabled:opacity-50"
               >
-                <Play size={16} />
-                Confirm & Generate Complete Deck
+                {isGenerating ? (
+                  <RefreshCw size={16} className="animate-spin" />
+                ) : (
+                  <Play size={16} />
+                )}
+                <span>Confirm &amp; Generate Complete Deck</span>
               </button>
             </div>
           </div>

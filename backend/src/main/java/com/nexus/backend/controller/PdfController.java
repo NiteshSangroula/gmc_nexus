@@ -1,6 +1,5 @@
 package com.nexus.backend.controller;
 
-
 import com.nexus.backend.dto.response.ApiResponse;
 import com.nexus.backend.dto.response.PdfDocumentResponse;
 import com.nexus.backend.entity.PdfDocument;
@@ -11,8 +10,7 @@ import com.nexus.backend.service.PdfService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
+import org.springframework.web.bind.annotation.GetMapping;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/pdf")
@@ -31,10 +32,10 @@ public class PdfController {
 
     @PostMapping("/upload")
     public ResponseEntity<ApiResponse<PdfDocumentResponse>> uploadPdf(
-            @RequestParam("file")MultipartFile file,
-            @AuthenticationPrincipal UserDetails userDetails){
-        User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("Authenticated User not found "));
+            @RequestParam("file") MultipartFile file,
+            Authentication auth) {
+        User user = userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Authenticated User not found"));
 
         String extractedText = pdfService.extractText(file);
 
@@ -58,8 +59,30 @@ public class PdfController {
         );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(responseData, "PDF uploaded and successfully parsed"));
-
     }
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<PdfDocumentResponse>>> listPdfs(
+            Authentication auth) {
+        User user = userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Authenticated User not found"));
 
+        List<PdfDocument> pdfs = pdfDocumentRepository.findByUser(user);
+
+        List<PdfDocumentResponse> responseData = pdfs.stream()
+                .map(doc -> {
+                    String preview = doc.getExtractedText() != null
+                            ? doc.getExtractedText().substring(0, Math.min(doc.getExtractedText().length(), 100))
+                            : "";
+                    return new PdfDocumentResponse(
+                            doc.getId(),
+                            doc.getFilename(),
+                            preview,
+                            doc.getUploadedAt()
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(ApiResponse.success(responseData, "PDF list retrieved successfully."));
+    }
 }

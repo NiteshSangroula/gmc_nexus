@@ -112,4 +112,25 @@ public class FlashCardController {
         return ResponseEntity.ok(ApiResponse.success(null, "Flashcard deleted successfully"));
     }
 
+    @DeleteMapping("/deck/{deckId}")
+    public ResponseEntity<ApiResponse<Void>> deleteDeck(
+            @PathVariable String deckId,
+            Authentication auth) {
+        UserResponse userResponse = userService.getCurrentUser(auth);
+        flashCardService.deleteDeck(userResponse.id(), deckId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Deck deleted successfully"));
+    }
+
+    @GetMapping("/public")
+    public ResponseEntity<ApiResponse<Page<FlashCardResponse>>> getPublicFlashCards(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+        Sort sort = direction.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<FlashCardResponse> cardsPage = flashCardService.getPublicFlashCards(pageable);
+        return ResponseEntity.ok(ApiResponse.success(cardsPage, "Public flashcards retrieved successfully"));
+    }
+
 }

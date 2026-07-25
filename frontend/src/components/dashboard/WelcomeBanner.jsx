@@ -1,4 +1,4 @@
-import { Upload, Layers, ArrowRight, FileText } from "lucide-react";
+import { Upload, Layers } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
@@ -16,7 +16,7 @@ const WelcomeBanner = () => {
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-            Welcome back, {name}! 👋
+            Welcome back, {name}!
           </h1>
           <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
             Convert your lecture notes, textbook chapters, and slides into active recall study decks for faster revision.
@@ -39,35 +39,6 @@ const WelcomeBanner = () => {
               Browse Study Decks
             </Link>
           </div>
-        </div>
-
-        <div className="flex flex-col gap-3 rounded-2xl border border-slate-800 dark:border-white/10 bg-slate-800/60 dark:bg-white/5 p-5 min-w-65">
-          <div className="flex items-center justify-between border-b border-slate-700 dark:border-white/10 pb-3">
-            <div className="flex items-center gap-2">
-              <FileText size={18} className="text-orange-400" />
-              <span className="text-xs font-bold text-white">Current Active Deck</span>
-            </div>
-            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
-              Ready
-            </span>
-          </div>
-
-          <div className="space-y-1">
-            <h4 className="text-xs font-bold text-slate-200">
-              Machine Learning Basics.pdf
-            </h4>
-            <p className="text-[11px] text-slate-400">
-              24 Flashcards • 4 Topics Covered
-            </p>
-          </div>
-
-          <Link
-            to="/library"
-            className="mt-2 flex items-center justify-between text-xs font-bold text-orange-400 hover:text-orange-300"
-          >
-            <span>Start Practice Session</span>
-            <ArrowRight size={14} />
-          </Link>
         </div>
       </div>
     </div>

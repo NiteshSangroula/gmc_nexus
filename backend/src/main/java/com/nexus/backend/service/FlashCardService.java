@@ -30,4 +30,8 @@ public interface FlashCardService {
 
     public void deleteFlashCard(Long userId, Long flashcardId);
 
+    public void deleteDeck(Long userId, String deckId); 
+
+    public Page<FlashCardResponse> getPublicFlashCards(Pageable pageable);
+
 }

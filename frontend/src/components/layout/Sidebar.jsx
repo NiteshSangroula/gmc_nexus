@@ -13,6 +13,7 @@ import {
   HelpCircle,
   ArrowUpRight,
   X,
+  Globe,
 } from "lucide-react";
 
 const menuItems = [
@@ -37,6 +38,11 @@ const menuItems = [
     icon: FolderOpen,
   },
   {
+    title: "Public Flashcards",
+    path: "/public-library",
+    icon: Globe,
+  },
+  {
     title: "History",
     path: "/history",
     icon: History,
@@ -45,11 +51,6 @@ const menuItems = [
     title: "Pro Plan",
     path: "/premium",
     icon: Award,
-  },
-  {
-    title: "Credits & Usage",
-    path: "/credits",
-    icon: Coins,
   },
   {
     title: "Settings",

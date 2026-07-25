@@ -40,4 +40,10 @@ public class AuthController {
         ApiResponse<AuthResponse> apiResponse = ApiResponse.success(response, "Login successful");
         return ResponseEntity.ok(apiResponse);
     }
+
+    @PostMapping("/send-otp")
+    public ResponseEntity<ApiResponse<Void>> sendOtp(@RequestBody @Valid com.nexus.backend.dto.request.SendOtpRequest request) {
+        authService.sendOtp(request.email());
+        return ResponseEntity.ok(ApiResponse.success(null, "Verification code sent to email successfully"));
+    }
 }
