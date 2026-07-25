@@ -30,6 +30,7 @@ const PublicLibraryPage = () => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortBy, setSortBy] = useState("newest"); // "newest", "likes", "comments"
 
   // Reaction & forum replies states
   const [activeTab, setActiveTab] = useState("practice"); // "practice" or "forum"
@@ -61,6 +62,8 @@ const PublicLibraryPage = () => {
             title: title,
             category: isAi ? "AI Generated" : "Custom Deck",
             ownerId: card.ownerId,
+            likesCount: card.likesCount || 0,
+            commentsCount: card.commentsCount || 0,
             cards: [],
           };
         }
@@ -97,6 +100,16 @@ const PublicLibraryPage = () => {
         card.a?.toLowerCase().includes(query)
     ) || false;
     return titleMatch || catMatch || cardsMatch;
+  });
+
+  const sortedAndFilteredDecks = [...filteredDecks].sort((a, b) => {
+    if (sortBy === "likes") {
+      return (b.likesCount || 0) - (a.likesCount || 0);
+    }
+    if (sortBy === "comments") {
+      return (b.commentsCount || 0) - (a.commentsCount || 0);
+    }
+    return 0; // maintain default chronological ordering
   });
 
   const openDeckModal = async (deck) => {
@@ -208,6 +221,45 @@ const PublicLibraryPage = () => {
           </div>
         </div>
 
+        {/* Sorting / Ranking controls */}
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 dark:border-white/10 pb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Rank By:</span>
+            <button
+              onClick={() => setSortBy("newest")}
+              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all ${
+                sortBy === "newest"
+                  ? "bg-orange-500 text-white shadow-xs"
+                  : "bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-800"
+              }`}
+            >
+              Default (Newest)
+            </button>
+            <button
+              onClick={() => setSortBy("likes")}
+              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all flex items-center gap-1.5 ${
+                sortBy === "likes"
+                  ? "bg-orange-500 text-white shadow-xs"
+                  : "bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-800"
+              }`}
+            >
+              <ThumbsUp size={13} />
+              <span>Top Liked</span>
+            </button>
+            <button
+              onClick={() => setSortBy("comments")}
+              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all flex items-center gap-1.5 ${
+                sortBy === "comments"
+                  ? "bg-orange-500 text-white shadow-xs"
+                  : "bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-800"
+              }`}
+            >
+              <MessageSquare size={13} />
+              <span>Top Comments</span>
+            </button>
+          </div>
+        </div>
+
         {/* Loading Spinner */}
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
@@ -224,7 +276,7 @@ const PublicLibraryPage = () => {
         ) : (
           /* Deck Grid */
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredDecks.map((deck) => {
+            {sortedAndFilteredDecks.map((deck) => {
               const isOwner = deck.ownerId === currentUserId;
               return (
                 <div
@@ -242,9 +294,19 @@ const PublicLibraryPage = () => {
                     >
                       {isOwner ? "My Deck" : "Public Shared"}
                     </span>
-                    <div className="flex items-center gap-1 text-xs font-semibold text-slate-400">
-                      <Layers size={14} className="text-amber-500" />
-                      <span>{deck.cards.length} Cards</span>
+                    <div className="flex items-center gap-3 text-xs font-semibold text-slate-400">
+                      <span className="flex items-center gap-1" title="Cards count">
+                        <Layers size={14} className="text-amber-500" />
+                        <span>{deck.cards.length}</span>
+                      </span>
+                      <span className="flex items-center gap-1" title="Total Likes">
+                        <ThumbsUp size={13} className="text-orange-500" />
+                        <span>{deck.likesCount}</span>
+                      </span>
+                      <span className="flex items-center gap-1" title="Total Comments">
+                        <MessageSquare size={13} className="text-orange-500" />
+                        <span>{deck.commentsCount}</span>
+                      </span>
                     </div>
                   </div>
 

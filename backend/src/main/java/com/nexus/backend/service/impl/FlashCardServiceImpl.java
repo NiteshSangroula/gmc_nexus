@@ -19,6 +19,8 @@ import com.nexus.backend.exception.ResourceNotFoundException;
 import com.nexus.backend.exception.UnauthorizedAccessException;
 import com.nexus.backend.repository.FlashCardRepository;
 import com.nexus.backend.repository.UserRepository;
+import com.nexus.backend.repository.DeckReactionRepository;
+import com.nexus.backend.repository.DeckReplyRepository;
 import com.nexus.backend.service.AiService;
 import com.nexus.backend.service.FlashCardService;
 import com.nexus.backend.service.UserService;
@@ -37,6 +39,8 @@ public class FlashCardServiceImpl implements FlashCardService {
     private final UserService userService;
     private final AiService aiService;
     private final NotificationService notificationService;
+    private final DeckReactionRepository deckReactionRepository;
+    private final DeckReplyRepository deckReplyRepository;
 
     @Override
     public FlashCardResponse createFlashCard(Long userId, FlashCardRequest request) {
@@ -183,6 +187,8 @@ public class FlashCardServiceImpl implements FlashCardService {
     }
 
     private FlashCardResponse mapToResponse(FlashCard card) {
+        long likes = deckReactionRepository.countByDeckIdAndLiked(card.getDeckId(), true);
+        long comments = deckReplyRepository.countByDeckId(card.getDeckId());
         return new FlashCardResponse(
                 card.getId(),
                 card.getDeckId(),
@@ -190,7 +196,9 @@ public class FlashCardServiceImpl implements FlashCardService {
                 card.getQuestion(),
                 card.getAnswer(),
                 card.getCreatedAt(),
-                card.getUser() != null ? card.getUser().getId() : null);
+                card.getUser() != null ? card.getUser().getId() : null,
+                likes,
+                comments);
     }
 
     private List<FlashCardResponse> mapToResponses(List<FlashCard> flashCards) {
