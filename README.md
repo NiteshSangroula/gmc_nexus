@@ -8,6 +8,7 @@ The application combines a modern React frontend with a Spring Boot backend, sec
 
 Whether preparing for exams or reviewing class notes, FlashAI helps students spend less time organizing study material and more time learning.
 
+
 # Features
 
 ###  AI Flashcard Generation
